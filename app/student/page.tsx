@@ -81,7 +81,7 @@ export default function StudentPage() {
                 <input
                   id="roll"
                   type="text"
-                  placeholder="e.g., 2024001"
+                  placeholder="e.g., 24F-1234"
                   value={rollNumber}
                   onChange={(e) => setRollNumber(e.target.value)}
                   className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
