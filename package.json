@@ -12,7 +12,7 @@
     "@supabase/supabase-js": "^2.38.0",
     "@supabase/ssr": "^0.0.10",
     "bcryptjs": "^2.4.3",
-    "jsonwebtoken": "^9.1.2",
+    "jsonwebtoken": "^9.0.2",
     "@hookform/resolvers": "^3.9.1",
     "@vercel/analytics": "1.6.1",
     "@radix-ui/react-accordion": "1.2.12",
