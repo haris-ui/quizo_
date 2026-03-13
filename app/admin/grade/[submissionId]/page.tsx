@@ -55,7 +55,7 @@ export default function GradingPage({ params }: { params: Promise<{ submissionId
       const { data: submissionData, error: subError } = await supabase
         .from('quiz_submissions')
         .select('*')
-        .eq('id', params.submissionId)
+        .eq('id', resolvedParams.submissionId)
         .single();
 
       if (subError) throw subError;
@@ -78,7 +78,7 @@ export default function GradingPage({ params }: { params: Promise<{ submissionId
             marks
           )
         `)
-        .eq('submission_id', params.submissionId)
+        .eq('submission_id', resolvedParams.submissionId)
         .order('created_at', { ascending: true });
 
       if (resError) throw resError;
@@ -161,7 +161,7 @@ export default function GradingPage({ params }: { params: Promise<{ submissionId
           max_score: maxScore,
           grading_completed: true,
         })
-        .eq('id', params.submissionId);
+        .eq('id', resolvedParams.submissionId);
 
       if (updateError) throw updateError;
 

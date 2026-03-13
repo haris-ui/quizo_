@@ -54,7 +54,7 @@ export default function ResultsPage({ params }: { params: Promise<{ quizId: stri
       const { data: submissionsData, error: submissionsError } = await supabase
         .from('quiz_submissions')
         .select('*')
-        .eq('quiz_id', params.quizId)
+        .eq('quiz_id', resolvedParams.quizId)
         .order('submitted_at', { ascending: false });
 
       if (submissionsError) throw submissionsError;

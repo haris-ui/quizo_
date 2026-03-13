@@ -70,7 +70,7 @@ export default function ReviewPage({ params }: { params: Promise<{ submissionId:
             marks
           )
         `)
-        .eq('submission_id', params.submissionId)
+        .eq('submission_id', resolvedParams.submissionId)
         .order('created_at', { ascending: true });
 
       if (resError) throw resError;
