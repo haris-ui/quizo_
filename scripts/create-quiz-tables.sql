@@ -81,6 +81,12 @@ ALTER TABLE quiz_submissions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE student_responses ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies for Public Access (Students taking quiz)
+CREATE POLICY "Admins can insert themselves" ON admins
+  FOR INSERT WITH CHECK (true);
+
+CREATE POLICY "Admins can read themselves" ON admins
+  FOR SELECT USING (true);
+
 CREATE POLICY "Students can view active quizzes" ON quizzes
   FOR SELECT USING (NOT is_locked);
 
