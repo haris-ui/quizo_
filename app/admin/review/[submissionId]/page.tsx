@@ -134,87 +134,87 @@ export default function ReviewPage({ params }: { params: Promise<{ submissionId:
   const currentResponse = responses[currentResponseIndex];
 
   return (
-    <main className="min-h-screen bg-background">
-      <div className="border-b">
-        <div className="max-w-6xl mx-auto px-4 py-6">
-          <Link href="/admin/dashboard" className="text-primary hover:underline mb-4 inline-block">
-            ← Back to Dashboard
+    <main className="min-h-screen bg-background text-foreground font-mono uppercase selection:bg-foreground selection:text-background pb-20">
+      <div className="border-b-4 border-foreground mb-12">
+        <div className="max-w-6xl mx-auto px-6 py-10">
+          <Link href="/admin/dashboard" className="text-sm font-black hover:underline mb-6 inline-block tracking-widest">
+            [ &lt; RETURN TO BASE ]
           </Link>
-          <h1 className="text-3xl font-bold">Review Submission</h1>
-          <p className="text-muted-foreground mt-1">Roll: {submission?.roll_number}</p>
+          <h1 className="text-4xl font-black tracking-tighter italic">REVIEW_PROTOCOL // ROLL: {submission?.roll_number}</h1>
         </div>
       </div>
 
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Score Summary */}
-        <div className="bg-card rounded-lg border p-6 mb-8">
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <p className="text-muted-foreground text-sm">Total Score</p>
-              <p className="text-2xl font-bold">{submission?.total_score || 0}</p>
-            </div>
-            <div>
-              <p className="text-muted-foreground text-sm">Max Score</p>
-              <p className="text-2xl font-bold">{submission?.max_score || 0}</p>
-            </div>
-            <div>
-              <p className="text-muted-foreground text-sm">Percentage</p>
-              <p className="text-2xl font-bold">
-                {submission?.max_score
-                  ? ((submission?.total_score || 0) / submission?.max_score * 100).toFixed(2)
-                  : 0}
-                %
-              </p>
-            </div>
+        <div className="border-4 border-foreground p-8 mb-12 bg-card grid grid-cols-1 md:grid-cols-3 gap-8 relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-2 h-full bg-foreground"></div>
+          <div>
+            <p className="text-[10px] font-black opacity-50 mb-2 tracking-widest">AGGREGATE_SCORE</p>
+            <p className="text-4xl font-black italic">{submission?.total_score || 0}</p>
+          </div>
+          <div>
+            <p className="text-[10px] font-black opacity-50 mb-2 tracking-widest">MAX_VALUATION</p>
+            <p className="text-4xl font-black italic">{submission?.max_score || 0}</p>
+          </div>
+          <div>
+            <p className="text-[10px] font-black opacity-50 mb-2 tracking-widest">SUCCESS_RATIO</p>
+            <p className="text-4xl font-black italic">
+              {submission?.max_score
+                ? ((submission?.total_score || 0) / submission?.max_score * 100).toFixed(2)
+                : 0}
+              %
+            </p>
           </div>
         </div>
 
         {/* Progress */}
-        <div className="mb-8">
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-sm font-medium">
-              Question {currentResponseIndex + 1} of {responses.length}
+        <div className="mb-12">
+          <div className="flex justify-between items-center mb-4">
+            <span className="text-xs font-black tracking-widest">
+              ENTRY_NODE {currentResponseIndex + 1} // {responses.length}
             </span>
           </div>
-          <div className="w-full bg-secondary h-2 rounded-full">
+          <div className="w-full border-2 border-foreground h-4 p-1">
             <div
-              className="bg-primary h-2 rounded-full transition-all"
+              className="bg-foreground h-full transition-all"
               style={{ width: `${((currentResponseIndex + 1) / responses.length) * 100}%` }}
             />
           </div>
         </div>
 
         {/* Question Card */}
-        <div className="bg-card rounded-lg border p-8 mb-8">
-          <h2 className="text-xl font-semibold mb-4">{currentResponse.question_text}</h2>
-          <p className="text-sm text-muted-foreground mb-4">Marks: {currentResponse.marks}</p>
+        <div className="border-4 border-foreground p-10 bg-card mb-12 relative">
+          <div className="absolute top-0 right-0 bg-foreground text-background px-4 py-1 text-[10px] font-black tracking-widest">
+            NODE_VALUATION: {currentResponse.marks}
+          </div>
+          
+          <h2 className="text-2xl font-black mb-8 leading-tight italic">{currentResponse.question_text}</h2>
 
           {currentResponse.question_type === 'mcq' ? (
-            <div className="bg-secondary/50 p-4 rounded-lg">
-              <p className="text-sm text-muted-foreground mb-2">Student's Answer:</p>
-              <p className="font-medium">{currentResponse.selected_option_text}</p>
+            <div className="border-2 border-foreground p-6 bg-secondary/30 mb-8">
+              <p className="text-[10px] font-black opacity-50 mb-4 tracking-widest">RECORDED_DATA (MCQ):</p>
+              <p className="text-lg font-black">{currentResponse.selected_option_text || 'NO SELECTION'}</p>
             </div>
           ) : (
-            <div className="bg-secondary/50 p-4 rounded-lg min-h-24">
-              <p className="text-sm text-muted-foreground mb-2">Student's Answer:</p>
-              <p className="font-mono text-sm whitespace-pre-wrap">{currentResponse.short_answer_text || '(No answer)'}</p>
+            <div className="border-2 border-foreground p-6 bg-secondary/30 mb-8 min-h-[140px]">
+              <p className="text-[10px] font-black opacity-50 mb-4 tracking-widest">RECORDED_DATA (EXTENDED):</p>
+              <p className="font-mono text-sm whitespace-pre-wrap leading-relaxed">{currentResponse.short_answer_text || '(NULL_RESPONSE)'}</p>
             </div>
           )}
 
-          {/* Grading Result */}
-          <div className="mt-6 space-y-4 border-t pt-6">
+          <div className="space-y-8 pt-8 border-t-2 border-foreground">
             <div>
-              <label className="block text-sm font-medium mb-2">Marks Obtained</label>
-              <div className="bg-secondary/50 p-3 rounded-lg">
-                <p className="font-bold text-lg">{currentResponse.marks_obtained || 0} / {currentResponse.marks}</p>
+              <label className="block text-xs font-black mb-3 tracking-widest">VERIFIED_VALUE</label>
+              <div className="bg-foreground text-background p-6 border-2 border-foreground inline-block min-w-[200px]">
+                <p className="text-3xl font-black italic">{currentResponse.marks_obtained || 0} / {currentResponse.marks}</p>
               </div>
             </div>
 
             {currentResponse.admin_notes && (
               <div>
-                <label className="block text-sm font-medium mb-2">Admin Notes</label>
-                <div className="bg-secondary/50 p-4 rounded-lg">
-                  <p className="text-sm">{currentResponse.admin_notes}</p>
+                <label className="block text-xs font-black mb-3 tracking-widest">VERIFICATION_LOG</label>
+                <div className="border-2 border-foreground p-6 bg-background">
+                  <p className="text-sm font-bold opacity-80 italic">"{currentResponse.admin_notes}"</p>
                 </div>
               </div>
             )}
@@ -226,16 +226,16 @@ export default function ReviewPage({ params }: { params: Promise<{ submissionId:
           <button
             onClick={() => setCurrentResponseIndex(Math.max(0, currentResponseIndex - 1))}
             disabled={currentResponseIndex === 0}
-            className="px-6 py-2 border rounded-lg disabled:opacity-50"
+            className="flex-1 px-8 py-5 border-2 border-foreground font-black uppercase tracking-widest hover:bg-foreground hover:text-background disabled:opacity-20 transition-all"
           >
-            Previous
+            [ PREVIOUS_NODE ]
           </button>
           <button
             onClick={() => setCurrentResponseIndex(Math.min(responses.length - 1, currentResponseIndex + 1))}
             disabled={currentResponseIndex === responses.length - 1}
-            className="px-6 py-2 border rounded-lg disabled:opacity-50"
+            className="flex-1 px-8 py-5 border-2 border-foreground font-black uppercase tracking-widest hover:bg-foreground hover:text-background disabled:opacity-20 transition-all"
           >
-            Next
+            [ NEXT_NODE ]
           </button>
         </div>
       </div>

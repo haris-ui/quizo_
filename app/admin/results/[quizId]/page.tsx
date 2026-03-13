@@ -110,102 +110,102 @@ export default function ResultsPage({ params }: { params: Promise<{ quizId: stri
   }
 
   return (
-    <main className="min-h-screen bg-background">
-      <div className="border-b">
-        <div className="max-w-6xl mx-auto px-4 py-6">
-          <Link href="/admin/dashboard" className="text-primary hover:underline mb-4 inline-block">
-            ← Back to Dashboard
+    <main className="min-h-screen bg-background text-foreground font-mono uppercase selection:bg-foreground selection:text-background pb-20">
+      <div className="border-b-4 border-foreground mb-12">
+        <div className="max-w-6xl mx-auto px-6 py-10">
+          <Link href="/admin/dashboard" className="text-sm font-black hover:underline mb-6 inline-block tracking-widest">
+            [ &lt; RETURN TO BASE ]
           </Link>
-          <h1 className="text-3xl font-bold">{quiz?.title} - Results</h1>
+          <h1 className="text-4xl font-black tracking-tighter italic">{quiz?.title} // PERFORMANCE_LOG</h1>
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-8">
-          <div className="text-muted-foreground">
-            Total Submissions: {submissions.length}
+      <div className="max-w-6xl mx-auto px-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-6">
+          <div className="bg-foreground text-background px-6 py-4 border-2 border-foreground font-black tracking-[0.2em] text-sm">
+            TOTAL_ENTRIES: {submissions.length}
           </div>
           <button
             onClick={handleExportCSV}
-            className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 font-medium"
+            className="px-10 py-4 border-4 border-foreground bg-background text-foreground font-black uppercase tracking-widest hover:bg-foreground hover:text-background transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px]"
           >
-            Export as CSV
+            EXPORT DATA (.CSV)
           </button>
         </div>
 
         {submissions.length === 0 ? (
-          <div className="bg-card rounded-lg border p-12 text-center">
-            <p className="text-muted-foreground">No submissions yet</p>
+          <div className="border-4 border-foreground p-24 text-center bg-card">
+            <p className="text-muted-foreground font-black tracking-widest">NO ENTRIES DETECTED IN LOG.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto border rounded-lg">
-            <table className="w-full">
-              <thead className="bg-secondary border-b">
+          <div className="overflow-x-auto border-4 border-foreground">
+            <table className="w-full text-left border-collapse">
+              <thead className="bg-foreground text-background border-b-4 border-foreground uppercase text-xs tracking-widest">
                 <tr>
-                  <th className="px-6 py-3 text-left text-sm font-semibold">Roll Number</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold">Score</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold">Percentage</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold">Status</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold">Submitted At</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold">Action</th>
+                  <th className="px-6 py-5 font-black">ID_NUM</th>
+                  <th className="px-6 py-5 font-black">VALUATION</th>
+                  <th className="px-6 py-5 font-black">RATIO</th>
+                  <th className="px-6 py-5 font-black">INTEGRITY_STATUS</th>
+                  <th className="px-6 py-5 font-black">TIMESTAMP</th>
+                  <th className="px-6 py-5 font-black">ACTION</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y-2 divide-foreground">
                 {submissions.map(sub => (
-                  <tr key={sub.id} className="border-b hover:bg-secondary/50">
-                    <td className="px-6 py-3">{sub.roll_number}</td>
-                    <td className="px-6 py-3">
+                  <tr key={sub.id} className="hover:bg-secondary transition-colors">
+                    <td className="px-6 py-5 font-bold">{sub.roll_number}</td>
+                    <td className="px-6 py-5 font-black">
                       {sub.is_cheating_detected ? (
-                        <span className="text-destructive font-semibold">0 / {sub.max_score}</span>
+                        <span className="text-background bg-foreground px-2 py-1">000 / {sub.max_score}</span>
                       ) : (
-                        <span>{sub.total_score || 0} / {sub.max_score || 0}</span>
+                        <span>{String(sub.total_score || 0).padStart(3, '0')} / {sub.max_score || 0}</span>
                       )}
                     </td>
-                    <td className="px-6 py-3">
+                    <td className="px-6 py-5 font-black">
                       {sub.is_cheating_detected ? (
-                        <span className="text-destructive font-semibold">0%</span>
+                        <span className="">0.00%</span>
                       ) : (
                         <span>{((sub.total_score || 0) / (sub.max_score || 1) * 100).toFixed(2)}%</span>
                       )}
                     </td>
-                    <td className="px-6 py-3">
+                    <td className="px-6 py-5">
                       {sub.is_cheating_detected && (
-                        <span className="px-3 py-1 bg-destructive/20 text-destructive text-xs font-medium rounded">
-                          {sub.cheating_reason}
+                        <span className="px-3 py-1 bg-foreground text-background text-[10px] font-black uppercase">
+                          [ FAIL: {sub.cheating_reason} ]
                         </span>
                       )}
                       {!sub.is_cheating_detected && !sub.grading_completed && (
-                        <span className="px-3 py-1 bg-yellow-500/20 text-yellow-700 text-xs font-medium rounded">
-                          Pending Review
+                        <span className="px-3 py-1 border-2 border-foreground text-[10px] font-black uppercase">
+                          PENDING_VERIFICATION
                         </span>
                       )}
                       {sub.grading_completed && (
-                        <span className="px-3 py-1 bg-green-500/20 text-green-700 text-xs font-medium rounded">
-                          Graded
+                        <span className="px-3 py-1 bg-foreground text-background text-[10px] font-black uppercase">
+                          VERIFIED
                         </span>
                       )}
                     </td>
-                    <td className="px-6 py-3 text-sm">
-                      {sub.submitted_at ? new Date(sub.submitted_at).toLocaleString() : '-'}
+                    <td className="px-6 py-5 text-[10px] font-black opacity-60">
+                      {sub.submitted_at ? new Date(sub.submitted_at).toLocaleString() : 'N/A'}
                     </td>
-                    <td className="px-6 py-3">
+                    <td className="px-6 py-5">
                       {!sub.is_cheating_detected && !sub.grading_completed && (
                         <Link
                           href={`/admin/grade/${sub.id}`}
-                          className="text-primary hover:underline text-sm font-medium"
+                          className="bg-foreground text-background px-4 py-2 text-xs font-black uppercase hover:opacity-80 transition-opacity"
                         >
-                          Grade
+                          EVALUATE
                         </Link>
                       )}
                       {sub.is_cheating_detected && (
-                        <span className="text-muted-foreground text-sm">Auto-marked 0</span>
+                        <span className="text-[10px] font-black opacity-30">AUTO_ZERO</span>
                       )}
                       {sub.grading_completed && (
                         <Link
                           href={`/admin/review/${sub.id}`}
-                          className="text-primary hover:underline text-sm font-medium"
+                          className="border-2 border-foreground px-4 py-2 text-xs font-black uppercase hover:bg-foreground hover:text-background transition-all"
                         >
-                          View
+                          REVIEW
                         </Link>
                       )}
                     </td>

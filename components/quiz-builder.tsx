@@ -239,59 +239,65 @@ export default function QuizBuilder({ quizId }: QuizBuilderProps) {
   if (loading) return <div className="flex items-center justify-center h-screen">Loading...</div>;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <div className="bg-card rounded-lg border p-8">
-        <h1 className="text-3xl font-bold mb-8">
-          {quizId ? 'Edit Quiz' : 'Create New Quiz'}
-        </h1>
+    <div className="max-w-5xl mx-auto px-6 py-12 font-mono uppercase selection:bg-foreground selection:text-background text-foreground">
+      <div className="bg-card border-4 border-foreground p-10">
+        <div className="flex justify-between items-end mb-10 pb-6 border-b-4 border-foreground">
+          <h1 className="text-4xl font-black tracking-tighter italic">
+            {quizId ? 'MODIFY PROTOCOL' : 'INITIALIZE NEW PROTOCOL'}
+          </h1>
+          <p className="text-[10px] font-black opacity-30 tracking-[0.3em]">SECURE_CONFIG_LOCKED: FALSE</p>
+        </div>
 
         {error && (
-          <div className="p-4 bg-destructive/10 text-destructive rounded-lg mb-6">
-            {error}
+          <div className="p-6 border-4 border-foreground bg-foreground text-background font-black mb-8 text-sm">
+            ERROR DETECTED: {error.toUpperCase()}
           </div>
         )}
 
         {/* Quiz Details */}
-        <div className="space-y-6 mb-8">
-          <div>
-            <label className="block text-sm font-medium mb-2">Quiz Title *</label>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+          <div className="md:col-span-2">
+            <label className="block text-xs font-black mb-3 tracking-widest">PROTOCOL TITLE *</label>
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g., Mathematics Final Exam"
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              placeholder="E.G., ADVANCED ALGORITHMS 101"
+              className="w-full px-6 py-4 border-2 border-foreground bg-background focus:outline-none focus:bg-secondary transition-colors font-black text-xl uppercase"
               disabled={loading}
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-2">Description</label>
+          <div className="md:col-span-2">
+            <label className="block text-xs font-black mb-3 tracking-widest">PROTOCOL DESCRIPTION</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Quiz description (optional)"
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary min-h-24"
+              placeholder="DEFINE PROTOCOL PARAMETERS..."
+              className="w-full px-6 py-4 border-2 border-foreground bg-background focus:outline-none focus:bg-secondary transition-colors min-h-[120px] resize-none uppercase"
               disabled={loading}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">Duration (minutes)</label>
+            <label className="block text-xs font-black mb-3 tracking-widest">TEMPORAL DURATION (MINUTES)</label>
             <input
               type="number"
               value={duration}
               onChange={(e) => setDuration(Math.max(1, parseInt(e.target.value) || 1))}
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full px-6 py-4 border-2 border-foreground bg-background focus:outline-none focus:bg-secondary transition-colors font-black"
               min="1"
             />
           </div>
         </div>
 
         {/* Questions */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4">Questions ({questions.length})</h2>
-          <div className="space-y-6">
+        <div className="mb-12">
+          <div className="flex justify-between items-center mb-8 pb-4 border-b-2 border-foreground">
+            <h2 className="text-2xl font-black uppercase tracking-wider italic">ITEM INDEX ({questions.length})</h2>
+          </div>
+          
+          <div className="space-y-8">
             {questions.map((question, index) => (
               <QuestionEditor
                 key={index}
@@ -306,26 +312,26 @@ export default function QuizBuilder({ quizId }: QuizBuilderProps) {
 
           <button
             onClick={handleAddQuestion}
-            className="mt-6 w-full py-3 border-2 border-dashed rounded-lg hover:bg-secondary font-medium"
+            className="mt-8 w-full py-6 border-4 border-dashed border-foreground font-black uppercase tracking-widest hover:bg-foreground hover:text-background transition-colors text-xl"
           >
-            + Add Question
+            + APPEND ITEM TO INDEX
           </button>
         </div>
 
         {/* Actions */}
-        <div className="flex gap-4">
+        <div className="flex flex-col md:flex-row gap-4 pt-8 border-t-4 border-foreground">
           <button
             onClick={() => router.push('/admin/dashboard')}
-            className="flex-1 px-6 py-3 border rounded-lg hover:bg-secondary font-medium"
+            className="flex-1 px-8 py-5 border-2 border-foreground font-black uppercase tracking-widest hover:bg-foreground hover:text-background transition-colors"
           >
-            Cancel
+            ABORT MISSION
           </button>
           <button
             onClick={handleSaveQuiz}
             disabled={saving}
-            className="flex-1 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:opacity-90 disabled:opacity-50 font-medium"
+            className="flex-1 px-8 py-5 bg-foreground text-background font-black uppercase tracking-widest hover:opacity-90 disabled:opacity-50 transition-opacity border-2 border-foreground shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px]"
           >
-            {saving ? 'Saving...' : 'Save Quiz'}
+            {saving ? 'SYNCHRONIZING...' : 'COMMIT PROTOCOL >'}
           </button>
         </div>
       </div>
@@ -347,31 +353,31 @@ function QuestionEditor({
   isEditing: boolean;
 }) {
   return (
-    <div className="border rounded-lg p-4 bg-secondary/30">
-      <div className="flex justify-between items-start mb-4">
-        <h3 className="font-semibold text-lg">Question {index + 1}</h3>
+    <div className="border-2 border-foreground p-8 bg-card relative">
+      <div className="flex justify-between items-center mb-8 pb-4 border-b border-foreground/20">
+        <h3 className="font-black text-xs tracking-[0.2em]">ITEM_{String(index + 1).padStart(3, '0')}</h3>
         <button
           onClick={onDelete}
-          className="px-3 py-1 text-sm border border-destructive text-destructive rounded hover:bg-destructive/10"
+          className="px-4 py-1 border-2 border-foreground font-black text-[10px] uppercase tracking-widest hover:bg-foreground hover:text-background transition-colors"
         >
-          Delete
+          [ PURGE ]
         </button>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-6">
         <div>
-          <label className="block text-sm font-medium mb-2">Question Text *</label>
+          <label className="block text-xs font-black mb-3 tracking-widest text-foreground/50">ITEM TEXT *</label>
           <textarea
             value={question.question_text}
             onChange={(e) => onUpdate({ ...question, question_text: e.target.value })}
-            placeholder="Enter the question..."
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary min-h-20"
+            placeholder="DEFINE PROMPT..."
+            className="w-full px-6 py-4 border-2 border-foreground bg-background focus:outline-none focus:bg-secondary transition-colors min-h-[100px] resize-none uppercase font-bold"
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium mb-2">Question Type</label>
+            <label className="block text-xs font-black mb-3 tracking-widest text-foreground/50">ITEM CLASSIFICATION</label>
             <select
               value={question.question_type}
               onChange={(e) => onUpdate({
@@ -379,20 +385,20 @@ function QuestionEditor({
                 question_type: e.target.value as 'mcq' | 'short_answer',
                 options: e.target.value === 'short_answer' ? undefined : question.options,
               })}
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full px-6 py-4 border-2 border-foreground bg-background focus:outline-none focus:bg-secondary transition-colors font-black tracking-widest"
             >
-              <option value="mcq">Multiple Choice</option>
-              <option value="short_answer">Short Answer</option>
+              <option value="mcq">MULTIPLE CHOICE</option>
+              <option value="short_answer">EXTENDED RESPONSE</option>
             </select>
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">Marks</label>
+            <label className="block text-xs font-black mb-3 tracking-widest text-foreground/50">VALUATION (MARKS)</label>
             <input
               type="number"
               value={question.marks}
               onChange={(e) => onUpdate({ ...question, marks: Math.max(1, parseInt(e.target.value) || 1) })}
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full px-6 py-4 border-2 border-foreground bg-background focus:outline-none focus:bg-secondary transition-colors font-black"
               min="1"
             />
           </div>
@@ -400,22 +406,24 @@ function QuestionEditor({
 
         {/* MCQ Options */}
         {question.question_type === 'mcq' && question.options && (
-          <div>
-            <label className="block text-sm font-medium mb-2">Options</label>
-            <div className="space-y-3">
+          <div className="pt-6 border-t border-foreground/10">
+            <label className="block text-xs font-black mb-4 tracking-widest text-foreground/50">OPTION MATRIX</label>
+            <div className="space-y-4">
               {question.options.map((option, optIndex) => (
-                <div key={optIndex} className="flex gap-3 items-center">
-                  <input
-                    type="checkbox"
-                    checked={option.is_correct}
-                    onChange={(e) => {
-                      const updatedOptions = [...question.options!];
-                      updatedOptions[optIndex] = { ...option, is_correct: e.target.checked };
-                      onUpdate({ ...question, options: updatedOptions });
-                    }}
-                    className="w-4 h-4"
-                    title="Mark as correct answer"
-                  />
+                <div key={optIndex} className="flex gap-4 items-center">
+                  <div className="relative flex items-center justify-center">
+                    <input
+                      type="checkbox"
+                      checked={option.is_correct}
+                      onChange={(e) => {
+                        const updatedOptions = [...question.options!];
+                        updatedOptions[optIndex] = { ...option, is_correct: e.target.checked };
+                        onUpdate({ ...question, options: updatedOptions });
+                      }}
+                      className="w-8 h-8 border-2 border-foreground appearance-none checked:bg-foreground checked:after:content-['✓'] checked:after:text-background checked:after:absolute checked:after:flex checked:after:items-center checked:after:justify-center cursor-pointer"
+                      title="MARK AS VALID"
+                    />
+                  </div>
                   <input
                     type="text"
                     value={option.option_text}
@@ -424,17 +432,17 @@ function QuestionEditor({
                       updatedOptions[optIndex] = { ...option, option_text: e.target.value };
                       onUpdate({ ...question, options: updatedOptions });
                     }}
-                    placeholder={`Option ${optIndex + 1}`}
-                    className="flex-1 px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary"
+                    placeholder={`DATA_${optIndex + 1}`}
+                    className="flex-1 px-4 py-3 border-2 border-foreground bg-background focus:outline-none focus:bg-foreground focus:text-background transition-all uppercase text-sm font-bold"
                   />
                   <button
                     onClick={() => {
                       const updatedOptions = question.options!.filter((_, i) => i !== optIndex);
                       onUpdate({ ...question, options: updatedOptions });
                     }}
-                    className="px-3 py-2 text-sm border border-destructive text-destructive rounded hover:bg-destructive/10"
+                    className="px-3 py-3 border-2 border-foreground text-foreground hover:bg-foreground hover:text-background transition-colors text-xs font-black"
                   >
-                    Remove
+                    [ X ]
                   </button>
                 </div>
               ))}
@@ -449,9 +457,9 @@ function QuestionEditor({
                 };
                 onUpdate({ ...question, options: [...(question.options || []), newOption] });
               }}
-              className="mt-3 px-4 py-2 text-sm border rounded hover:bg-secondary"
+              className="mt-6 px-6 py-3 border-2 border-foreground font-black text-xs uppercase tracking-widest hover:bg-foreground hover:text-background transition-colors w-full md:w-auto"
             >
-              + Add Option
+              + APPEND OPTION
             </button>
           </div>
         )}

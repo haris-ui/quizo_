@@ -2,18 +2,18 @@ import Link from 'next/link';
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5">
+    <main className="min-h-screen bg-background text-foreground selection:bg-foreground selection:text-background">
       {/* Header */}
-      <header className="border-b">
-        <div className="max-w-6xl mx-auto px-4 py-6 flex justify-between items-center">
+      <header className="border-b-2 border-foreground">
+        <div className="max-w-6xl mx-auto px-6 py-6 flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold">Quiz Platform</h1>
-            <p className="text-muted-foreground text-sm mt-1">Secure exam management system</p>
+            <h1 className="text-3xl font-black uppercase tracking-tight">Quizo</h1>
+            <p className="font-mono text-sm mt-1 uppercase tracking-widest text-muted-foreground">Secure Exam Environment</p>
           </div>
           <div className="flex gap-4">
             <Link
               href="/student"
-              className="px-6 py-2 rounded-lg hover:bg-secondary border transition text-primary hover:text-primary-foreground"
+              className="px-6 py-2 border-2 border-foreground hover:bg-foreground hover:text-background transition-colors font-bold uppercase tracking-wider text-sm"
             >
               Student Portal
             </Link>
@@ -22,104 +22,75 @@ export default function Home() {
       </header>
 
       {/* Hero Section */}
-      <div className="max-w-6xl mx-auto px-4 py-20">
-        <div className="text-center mb-16">
-          <h2 className="text-5xl font-bold mb-6 text-balance">
-            Secure Quiz Management for Educational Excellence
+      <div className="max-w-6xl mx-auto px-6 py-24">
+        <div className="text-center mb-20">
+          <h2 className="text-5xl md:text-7xl font-black mb-8 uppercase tracking-tighter text-balance">
+            Academic Assessment <br/> Protocol
           </h2>
-          <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            A comprehensive platform designed to administer quizzes with strict anti-cheating detection,
-            automated MCQ grading, and flexible admin controls.
+          <p className="text-xl md:text-2xl font-mono mb-12 max-w-3xl mx-auto text-muted-foreground">
+            A high-integrity testing platform. Strict anti-cheating measures. Automated enforcement. 
           </p>
 
-          <div className="flex justify-center gap-4">
+          <div className="flex justify-center gap-6">
             <Link
               href="/student"
-              className="px-8 py-3 bg-primary text-primary-foreground rounded-lg hover:opacity-90 font-semibold"
+              className="px-10 py-4 bg-foreground text-background font-black uppercase tracking-widest text-lg hover:opacity-90 transition-opacity"
             >
-              Start Quiz
+              Enter Portal
             </Link>
           </div>
         </div>
 
-        {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
-          <div className="bg-card rounded-lg border p-6 hover:shadow-md transition">
-            <div className="text-3xl mb-4">🛡️</div>
-            <h3 className="font-semibold text-lg mb-2">Anti-Cheating</h3>
-            <p className="text-muted-foreground text-sm">
-              Detects tab switching, window blur, fullscreen exit, and suspicious key presses. Automatic zero marking.
+        {/* Features Minimalist Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-0 border-2 border-foreground mb-24">
+          <div className="p-8 border-b-2 md:border-b-0 md:border-r-2 border-foreground group hover:bg-foreground hover:text-background transition-colors">
+            <div className="text-4xl mb-6 font-mono">01</div>
+            <h3 className="font-black text-xl mb-3 uppercase tracking-wider">Zero Tolerance</h3>
+            <p className="opacity-80 font-mono text-sm leading-relaxed">
+              Immediate termination upon exiting fullscreen, modifying windows, or suspicious keystrokes.
             </p>
           </div>
 
-          <div className="bg-card rounded-lg border p-6 hover:shadow-md transition">
-            <div className="text-3xl mb-4">✅</div>
-            <h3 className="font-semibold text-lg mb-2">Auto-Grading</h3>
-            <p className="text-muted-foreground text-sm">
-              MCQ questions are automatically graded. Short answers reviewed manually by admins with flexible marking.
+          <div className="p-8 border-b-2 md:border-b-0 md:border-r-2 border-foreground group hover:bg-foreground hover:text-background transition-colors">
+            <div className="text-4xl mb-6 font-mono">02</div>
+            <h3 className="font-black text-xl mb-3 uppercase tracking-wider">Auto-Grading</h3>
+            <p className="opacity-80 font-mono text-sm leading-relaxed">
+              Instantaneous scoring for objective formats. Streamlined manual review for written responses.
             </p>
           </div>
 
-          <div className="bg-card rounded-lg border p-6 hover:shadow-md transition">
-            <div className="text-3xl mb-4">📊</div>
-            <h3 className="font-semibold text-lg mb-2">Results Dashboard</h3>
-            <p className="text-muted-foreground text-sm">
-              Track all submissions, view detailed results, grade short answers, and export data as CSV.
-            </p>
-          </div>
-
-          <div className="bg-card rounded-lg border p-6 hover:shadow-md transition">
-            <div className="text-3xl mb-4">🔐</div>
-            <h3 className="font-semibold text-lg mb-2">Secure Access</h3>
-            <p className="text-muted-foreground text-sm">
-              Admin authentication, Row Level Security, bcrypt password hashing, and JWT tokens for protection.
-            </p>
-          </div>
-
-          <div className="bg-card rounded-lg border p-6 hover:shadow-md transition">
-            <div className="text-3xl mb-4">⚡</div>
-            <h3 className="font-semibold text-lg mb-2">Auto-Save</h3>
-            <p className="text-muted-foreground text-sm">
-              Student responses auto-save every 5 seconds. Never lose progress even if connection drops.
-            </p>
-          </div>
-
-          <div className="bg-card rounded-lg border p-6 hover:shadow-md transition">
-            <div className="text-3xl mb-4">🎯</div>
-            <h3 className="font-semibold text-lg mb-2">Flexible Questions</h3>
-            <p className="text-muted-foreground text-sm">
-              Support for MCQs and short answer questions with custom marks allocation and unlimited options.
+          <div className="p-8 group hover:bg-foreground hover:text-background transition-colors">
+            <div className="text-4xl mb-6 font-mono">03</div>
+            <h3 className="font-black text-xl mb-3 uppercase tracking-wider">State Recovery</h3>
+            <p className="opacity-80 font-mono text-sm leading-relaxed">
+              Continuous 5-second persistence protocol ensures terminal progress is never lost.
             </p>
           </div>
         </div>
 
         {/* How It Works */}
-        <div className="bg-card rounded-lg border p-8 mb-16">
-          <h2 className="text-3xl font-bold mb-8 text-center">How It Works</h2>
-
+        <div className="border-t-2 border-foreground pt-16 mb-24">
           <div className="max-w-3xl mx-auto">
-            {/* For Students */}
-            <div>
-              <h3 className="text-xl font-semibold mb-6 flex items-center gap-2">
-                <span className="bg-primary text-primary-foreground w-8 h-8 rounded-full flex items-center justify-center text-sm">1</span>
-                How to Take a Quiz
+            <div className="mb-12">
+              <h3 className="text-3xl font-black mb-8 uppercase tracking-widest">
+                Examinee Protocol
               </h3>
-              <ol className="space-y-3 text-muted-foreground">
-                <li className="flex gap-3">
-                  <span className="font-bold text-primary min-w-6">1.</span>
-                  <span>Visit the student portal and enter your roll number</span>
+              <ol className="space-y-6 font-mono text-base">
+                <li className="flex gap-6 items-start">
+                  <span className="font-black text-xl w-8">1.</span>
+                  <span className="pt-1">Access the student portal and input assigned identification (Roll Number).</span>
                 </li>
-                <li className="flex gap-3">
-                  <span className="font-bold text-primary min-w-6">2.</span>
-                  <span>Select an available quiz from the list</span>
+                <li className="flex gap-6 items-start">
+                  <span className="font-black text-xl w-8">2.</span>
+                  <span className="pt-1">Select the designated assessment from the active index.</span>
                 </li>
-                <li className="flex gap-3">
-                  <span className="font-bold text-primary min-w-6">3.</span>
-                  <span>Enter fullscreen mode and answer MCQs and short questions</span>
+                <li className="flex gap-6 items-start">
+                  <span className="font-black text-xl w-8">3.</span>
+                  <span className="pt-1">Authorize fullscreen terminal mode. Environment will be locked.</span>
                 </li>
-                <li className="flex gap-3">
-                  <span className="font-bold text-primary min-w-6">4.</span>
-                  <span>Submit your quiz - responses auto-save every 5 seconds</span>
+                <li className="flex gap-6 items-start">
+                  <span className="font-black text-xl w-8">4.</span>
+                  <span className="pt-1">Complete assessment within parameters and systematically submit.</span>
                 </li>
               </ol>
             </div>
@@ -127,32 +98,27 @@ export default function Home() {
         </div>
 
         {/* Quick Links */}
-        <div className="max-w-3xl mx-auto">
-          <div className="bg-card rounded-lg border p-8 hover:shadow-md transition text-center">
-            <h3 className="text-2xl font-bold mb-3">Are you a Student?</h3>
-            <p className="text-muted-foreground mb-6">
-              Enter your roll number to view and take available quizzes.
-            </p>
-            <Link
-              href="/student"
-              className="inline-block px-8 py-3 bg-primary text-primary-foreground font-semibold rounded-lg hover:opacity-90 transition"
-            >
-              Go to Student Portal →
-            </Link>
-          </div>
+        <div className="max-w-2xl mx-auto text-center border-2 border-foreground p-12 bg-card">
+          <h3 className="text-2xl font-black mb-4 uppercase tracking-wider">Candidate Login</h3>
+          <p className="font-mono text-muted-foreground mb-8">
+            Access secure testing environment.
+          </p>
+          <Link
+            href="/student"
+            className="inline-block px-8 py-4 bg-foreground text-background font-black uppercase tracking-widest hover:opacity-90 transition-opacity"
+          >
+            Authenticate →
+          </Link>
         </div>
       </div>
 
       {/* Footer */}
-      <footer className="border-t mt-20">
-        <div className="max-w-6xl mx-auto px-4 py-8 text-center text-muted-foreground text-sm">
-          <p>Quiz Platform with Anti-Cheating Detection & Secure Grading</p>
-          <p className="mt-2">
-            For setup and usage guide, see{' '}
-            <Link href="/README_QUIZ.md" className="text-primary hover:underline">
-              the documentation
-            </Link>
-          </p>
+      <footer className="border-t-2 border-foreground bg-foreground text-background py-12">
+        <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center text-sm font-mono uppercase tracking-widest">
+          <p className="mb-4 md:mb-0">Quizo // Secure Assessment Framework</p>
+          <Link href="/README_QUIZ.md" className="hover:underline">
+            Documentation
+          </Link>
         </div>
       </footer>
     </main>

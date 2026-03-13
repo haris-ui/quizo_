@@ -84,86 +84,93 @@ export default function AdminDashboard() {
   };
 
   return (
-    <main className="min-h-screen bg-background">
-      <div className="border-b">
-        <div className="max-w-6xl mx-auto px-4 py-6 flex justify-between items-center">
-          <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+    <main className="min-h-screen bg-background text-foreground font-mono uppercase selection:bg-foreground selection:text-background">
+      <div className="border-b-4 border-foreground bg-foreground text-background">
+        <div className="max-w-6xl mx-auto px-6 py-6 flex justify-between items-center">
+          <h1 className="text-3xl font-black tracking-tighter uppercase italic">ADMIN TERMINAL // DASHBOARD</h1>
           <button
             onClick={handleLogout}
-            className="px-4 py-2 border rounded-lg hover:bg-secondary"
+            className="px-6 py-2 border-2 border-background font-black text-sm uppercase tracking-widest hover:bg-background hover:text-foreground transition-colors"
           >
-            Logout
+            [ DISCONNECT ]
           </button>
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 py-12">
-        <div className="flex justify-between items-center mb-8">
-          <h2 className="text-2xl font-bold">My Quizzes</h2>
+      <div className="max-w-6xl mx-auto px-6 py-12">
+        <div className="flex justify-between items-center mb-12 pb-6 border-b-2 border-foreground">
+          <h2 className="text-2xl font-black uppercase tracking-wider">ACTIVE PROTOCOLS</h2>
           <Link
             href="/admin/quizzes/new"
-            className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 font-medium"
+            className="px-8 py-4 bg-foreground text-background font-black uppercase tracking-widest hover:opacity-90 transition-opacity border-2 border-foreground"
           >
-            Create New Quiz
+            CREATE NEW ASSESSMENT +
           </Link>
         </div>
 
         {loading ? (
-          <div className="text-center py-12">Loading...</div>
+          <div className="text-center py-24 text-xl font-black tracking-widest">INITIALIZING DATA...</div>
         ) : error ? (
-          <div className="p-4 bg-destructive/10 text-destructive rounded-lg">{error}</div>
+          <div className="p-6 border-4 border-foreground bg-foreground text-background font-black mb-8 uppercase text-sm">
+            ERROR DETECTED: {error}
+          </div>
         ) : quizzes.length === 0 ? (
-          <div className="bg-card rounded-lg border p-12 text-center">
-            <p className="text-muted-foreground mb-4">No quizzes created yet</p>
+          <div className="border-4 border-foreground p-24 text-center bg-card">
+            <p className="text-muted-foreground mb-8 font-black uppercase tracking-widest text-lg">NO PROTOCOLS DEFINED.</p>
             <Link
               href="/admin/quizzes/new"
-              className="inline-block px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90"
+              className="inline-block px-10 py-5 bg-foreground text-background font-black uppercase tracking-widest hover:opacity-90 transition-opacity border-2 border-foreground"
             >
-              Create Your First Quiz
+              INITIALIZE FIRST ASSESSMENT
             </Link>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 gap-6">
             {quizzes.map(quiz => (
-              <div key={quiz.id} className="bg-card rounded-lg border p-6 hover:shadow-md transition">
-                <div className="flex justify-between items-start">
+              <div key={quiz.id} className="border-4 border-foreground p-8 bg-card hover:bg-secondary transition-colors group">
+                <div className="flex flex-col md:flex-row justify-between items-start">
                   <div className="flex-1">
-                    <div className="flex items-center gap-3">
-                      <h3 className="text-xl font-semibold">{quiz.title}</h3>
-                      {quiz.is_locked && (
-                        <span className="px-3 py-1 bg-orange-500/20 text-orange-700 text-xs font-medium rounded">
-                          Locked
+                    <div className="flex items-center gap-4 mb-4">
+                      <h3 className="text-2xl font-black uppercase tracking-tight">{quiz.title}</h3>
+                      {quiz.is_locked ? (
+                        <span className="px-3 py-1 bg-foreground text-background text-[10px] font-black uppercase tracking-widest">
+                          [ STATUS: LOCKED ]
+                        </span>
+                      ) : (
+                        <span className="px-3 py-1 border-2 border-foreground text-[10px] font-black uppercase tracking-widest">
+                          [ STATUS: ACTIVE ]
                         </span>
                       )}
                     </div>
                     {quiz.description && (
-                      <p className="text-muted-foreground text-sm mt-1">{quiz.description}</p>
+                      <p className="text-sm opacity-70 mb-4 max-w-2xl">{quiz.description}</p>
                     )}
-                    <p className="text-xs text-muted-foreground mt-2">
-                      Duration: {quiz.duration_minutes} minutes
-                    </p>
+                    <div className="flex gap-6 text-[10px] font-black tracking-[0.2em] opacity-50">
+                      <span>DURATION: {quiz.duration_minutes}M</span>
+                      <span>CREATED: {new Date(quiz.created_at).toLocaleDateString()}</span>
+                    </div>
                   </div>
 
-                  <div className="flex gap-2 ml-4">
+                  <div className="flex flex-wrap gap-3 mt-6 md:mt-0">
                     <Link
                       href={`/admin/results/${quiz.id}`}
-                      className="px-4 py-2 border rounded-lg hover:bg-secondary text-sm"
+                      className="px-6 py-3 border-2 border-foreground font-black text-xs uppercase tracking-widest hover:bg-foreground hover:text-background transition-colors"
                     >
-                      Results
+                      VIEW RESULTS
                     </Link>
                     {!quiz.is_locked && (
                       <>
                         <Link
                           href={`/admin/quizzes/${quiz.id}/edit`}
-                          className="px-4 py-2 border rounded-lg hover:bg-secondary text-sm"
+                          className="px-6 py-3 border-2 border-foreground font-black text-xs uppercase tracking-widest hover:bg-foreground hover:text-background transition-colors"
                         >
-                          Edit
+                          EDIT
                         </Link>
                         <button
                           onClick={() => handleDeleteQuiz(quiz.id, quiz.is_locked)}
-                          className="px-4 py-2 border border-destructive text-destructive rounded-lg hover:bg-destructive/10 text-sm"
+                          className="px-6 py-3 border-2 border-foreground bg-background text-foreground font-black text-xs uppercase tracking-widest hover:bg-foreground hover:text-background transition-colors"
                         >
-                          Delete
+                          DELETE
                         </button>
                       </>
                     )}

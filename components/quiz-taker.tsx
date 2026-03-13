@@ -291,72 +291,105 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
     onSubmit();
   };
 
-  if (loading) return <div className="flex items-center justify-center h-screen">Loading quiz...</div>;
-  if (error) return <div className="flex items-center justify-center h-screen text-red-600 font-bold">{error}</div>;
+  if (loading) return <div className="flex items-center justify-center h-screen font-mono uppercase tracking-widest bg-background text-foreground">Loading protocol...</div>;
+  if (error) return <div className="flex items-center justify-center h-screen text-foreground font-black uppercase tracking-widest bg-background p-6 border-4 border-foreground">{error}</div>;
+  
   if (isBanned) return (
-    <div className="flex flex-col items-center justify-center h-screen bg-destructive/10">
-      <h1 className="text-4xl font-bold text-destructive mb-4">Quiz Terminated</h1>
-      <p className="text-xl text-center max-w-lg mb-4">
-        Cheating detected: <strong>{bannedReason}</strong>
-      </p>
-      <p className="text-muted-foreground">Your score has been marked as 0. Redirecting...</p>
+    <div className="flex flex-col items-center justify-center h-screen bg-background text-foreground p-6 font-mono uppercase">
+      <div className="border-4 border-foreground p-12 max-w-2xl w-full text-center">
+        <h1 className="text-5xl font-black mb-8 tracking-tighter">ASSESSMENT TERMINATED</h1>
+        <div className="p-4 bg-foreground text-background mb-8 font-black">
+          VIOLATION DETECTED: {bannedReason}
+        </div>
+        <p className="text-base mb-8 leading-relaxed">
+          The environment integrity has been compromised. Your identification has been flagged and your score has been recorded as zero (0).
+        </p>
+        <p className="text-xs opacity-50">REDIRECTING TO TERMINAL HOME...</p>
+      </div>
     </div>
   );
+
   if (!isFullscreen) return (
-    <div className="flex flex-col items-center justify-center h-screen space-y-6">
-      <div className="text-center max-w-lg px-4">
-        <h1 className="text-3xl font-bold mb-4">Secure Exam Environment</h1>
-        <p className="text-muted-foreground mb-6">
-          This quiz requires fullscreen mode. Exiting fullscreen, switching tabs, or using restricted key combinations will immediately terminate your exam and result in a score of zero.
-        </p>
+    <div className="flex flex-col items-center justify-center h-screen bg-background text-foreground p-6 font-mono uppercase">
+      <div className="border-4 border-foreground p-12 max-w-2xl w-full">
+        <div className="flex items-center gap-4 mb-8 border-b-4 border-foreground pb-6">
+          <span className="text-5xl">⚠️</span>
+          <h1 className="text-3xl font-black tracking-tight">SECURE ENVIRONMENT REQUIRED</h1>
+        </div>
+        <div className="space-y-6 mb-12 text-sm leading-relaxed">
+          <p>This assessment requires immediate terminal locking.</p>
+          <ul className="list-none space-y-4">
+            <li className="flex gap-4"><span className="font-black">[!]</span> <span>EXITING FULLSCREEN = IMMEDIATE FAILURE.</span></li>
+            <li className="flex gap-4"><span className="font-black">[!]</span> <span>TAB SWITCHING = IMMEDIATE FAILURE.</span></li>
+            <li className="flex gap-4"><span className="font-black">[!]</span> <span>KEYS (ESC, F11, CTRL+C) = PROHIBITED.</span></li>
+          </ul>
+        </div>
         <button
           onClick={enterFullscreen}
-          className="px-8 py-3 bg-primary text-primary-foreground text-lg font-semibold rounded-lg hover:opacity-90 shadow-lg"
+          className="w-full py-6 bg-foreground text-background text-xl font-black tracking-widest hover:opacity-90 transition-opacity"
         >
-          Enter Fullscreen & Start Quiz
+          AUTHORIZE & START &gt;
         </button>
       </div>
     </div>
   );
-  if (questions.length === 0) return <div className="flex items-center justify-center h-screen">No questions found</div>;
+
+  if (questions.length === 0) return <div className="flex items-center justify-center h-screen font-mono uppercase bg-background text-foreground">NO DATA DETECTED.</div>;
 
   const currentQuestion = questions[currentQuestionIndex];
   const currentResponse = responses[currentQuestion.id] || {};
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="max-w-2xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex justify-between items-center mb-4">
-            <h1 className="text-2xl font-bold">Question {currentQuestionIndex + 1} of {questions.length}</h1>
-            <span className="text-sm text-muted-foreground">Roll: {rollNumber}</span>
+    <div className="min-h-screen bg-background text-foreground p-8 font-mono uppercase selection:bg-foreground selection:text-background">
+      <div className="max-w-4xl mx-auto">
+        {/* Progress Header */}
+        <div className="mb-12">
+          <div className="flex justify-between items-end mb-4">
+            <div>
+              <h2 className="text-3x font-black tracking-tighter">QUIZO ASSESSMENT</h2>
+              <p className="text-xs text-muted-foreground mt-1">ID: {rollNumber} // ITEM {currentQuestionIndex + 1} OF {questions.length}</p>
+            </div>
+            <div className="text-right">
+              <span className="text-sm font-black tracking-widest">{Math.round(((currentQuestionIndex + 1) / questions.length) * 100)}% COMPLETE</span>
+            </div>
           </div>
-          <div className="w-full bg-secondary h-2 rounded-full">
+          <div className="w-full bg-secondary h-4 border-2 border-foreground">
             <div 
-              className="bg-primary h-2 rounded-full transition-all"
+              className="bg-foreground h-full transition-all duration-500"
               style={{ width: `${((currentQuestionIndex + 1) / questions.length) * 100}%` }}
             />
           </div>
         </div>
 
-        {/* Question */}
-        <div className="bg-card rounded-lg p-8 mb-8 border">
-          <h2 className="text-xl font-semibold mb-6">{currentQuestion.question_text}</h2>
+        {/* Question Area */}
+        <div className="border-4 border-foreground p-10 bg-card mb-8">
+          <div className="flex justify-between items-start mb-8 border-b-2 border-foreground pb-4">
+            <span className="bg-foreground text-background px-4 py-1 font-black text-sm">ITEM {currentQuestionIndex + 1}</span>
+            <span className="font-black text-sm">{currentQuestion.marks} MARKS</span>
+          </div>
+
+          <h2 className="text-2xl font-black mb-10 leading-snug tracking-tight italic">"{currentQuestion.question_text}"</h2>
 
           {currentQuestion.question_type === 'mcq' ? (
-            <div className="space-y-3">
+            <div className="space-y-4">
               {currentQuestion.options?.map(option => (
-                <label key={option.id} className="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-secondary">
+                <label 
+                  key={option.id} 
+                  className={`flex items-center p-6 border-2 transition-colors cursor-pointer ${
+                    currentResponse.selected_option_id === option.id 
+                    ? 'bg-foreground text-background border-foreground' 
+                    : 'border-foreground hover:bg-secondary'
+                  }`}
+                >
                   <input
                     type="radio"
                     name={`question_${currentQuestion.id}`}
                     value={option.id}
                     checked={currentResponse.selected_option_id === option.id}
                     onChange={(e) => handleResponseChange(currentQuestion.id, { selected_option_id: e.target.value })}
-                    className="mr-4"
+                    className="sr-only"
                   />
-                  <span>{option.option_text}</span>
+                  <span className="text-lg font-bold">{option.option_text}</span>
                 </label>
               ))}
             </div>
@@ -364,36 +397,41 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
             <textarea
               value={currentResponse.short_answer_text || ''}
               onChange={(e) => handleResponseChange(currentQuestion.id, { short_answer_text: e.target.value })}
-              placeholder="Enter your answer here..."
-              className="w-full p-4 border rounded-lg font-mono text-sm min-h-32"
+              placeholder="ENTER RESPONSE SYSTEM..."
+              className="w-full p-6 border-2 border-foreground bg-background font-mono text-lg min-h-[250px] focus:outline-none focus:bg-secondary transition-colors resize-none placeholder:opacity-30"
             />
           )}
         </div>
 
-        {/* Navigation */}
-        <div className="flex gap-4">
+        {/* Navigation Footer */}
+        <div className="flex flex-col md:flex-row gap-4">
           <button
             onClick={() => setCurrentQuestionIndex(Math.max(0, currentQuestionIndex - 1))}
             disabled={currentQuestionIndex === 0}
-            className="px-6 py-2 border rounded-lg disabled:opacity-50"
+            className="px-10 py-4 border-2 border-foreground font-black text-sm uppercase tracking-widest hover:bg-foreground hover:text-background transition-colors disabled:opacity-30"
           >
-            Previous
+            &lt; PREVIOUS
           </button>
           <button
             onClick={() => setCurrentQuestionIndex(Math.min(questions.length - 1, currentQuestionIndex + 1))}
             disabled={currentQuestionIndex === questions.length - 1}
-            className="px-6 py-2 border rounded-lg disabled:opacity-50"
+            className="px-10 py-4 border-2 border-foreground font-black text-sm uppercase tracking-widest hover:bg-foreground hover:text-background transition-colors disabled:opacity-30"
           >
-            Next
+            NEXT &gt;
           </button>
           {currentQuestionIndex === questions.length - 1 && (
             <button
               onClick={handleSubmit}
-              className="px-6 py-2 bg-primary text-primary-foreground rounded-lg ml-auto"
+              className="px-10 py-4 bg-foreground text-background font-black text-sm uppercase tracking-widest hover:opacity-90 transition-opacity ml-auto border-2 border-foreground"
             >
-              Submit Quiz
+              FINAL SUBMISSION
             </button>
           )}
+        </div>
+
+        {/* Security Warning Sticky */}
+        <div className="mt-12 text-center">
+            <p className="text-[10px] tracking-[0.2em] font-black opacity-30">SECURITY PROTOCOL ACTIVE // CONTINUOUS PERSISTENCE ENABLED</p>
         </div>
       </div>
     </div>

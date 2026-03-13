@@ -200,101 +200,112 @@ export default function GradingPage({ params }: { params: Promise<{ submissionId
   const currentResponse = responses[currentResponseIndex];
 
   return (
-    <main className="min-h-screen bg-background">
-      <div className="border-b">
-        <div className="max-w-6xl mx-auto px-4 py-6">
-          <h1 className="text-3xl font-bold">Grading Submission</h1>
-          <p className="text-muted-foreground mt-1">Roll: {submission?.roll_number}</p>
+    <main className="min-h-screen bg-background text-foreground font-mono uppercase selection:bg-foreground selection:text-background pb-20">
+      <div className="border-b-4 border-foreground mb-12">
+        <div className="max-w-6xl mx-auto px-6 py-10">
+          <Link href={`/admin/results/${submission.quiz_id}`} className="text-sm font-black hover:underline mb-6 inline-block tracking-widest">
+            [ &lt; RETURN TO RESULTS ]
+          </Link>
+          <h1 className="text-4xl font-black tracking-tighter italic">EVALUATION_PROTOCOL // ROLL: {submission?.roll_number}</h1>
         </div>
       </div>
 
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Progress */}
-        <div className="mb-8">
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-sm font-medium">
-              Question {currentResponseIndex + 1} of {responses.length}
+        <div className="mb-12">
+          <div className="flex justify-between items-center mb-4">
+            <span className="text-xs font-black tracking-widest">
+              ENTRY_NODE {currentResponseIndex + 1} // {responses.length}
             </span>
           </div>
-          <div className="w-full bg-secondary h-2 rounded-full">
+          <div className="w-full border-2 border-foreground h-6 p-1 bg-background">
             <div
-              className="bg-primary h-2 rounded-full transition-all"
+              className="bg-foreground h-full transition-all"
               style={{ width: `${((currentResponseIndex + 1) / responses.length) * 100}%` }}
             />
           </div>
         </div>
 
         {/* Question Card */}
-        <div className="bg-card rounded-lg border p-8 mb-8">
-          <h2 className="text-xl font-semibold mb-4">{currentResponse.question_text}</h2>
+        <div className="border-4 border-foreground p-10 bg-card mb-12 relative overflow-hidden">
+          <div className="absolute top-0 right-0 bg-foreground text-background px-4 py-1 text-[10px] font-black tracking-widest">
+            VALUATION: {currentResponse.marks} MAX
+          </div>
+          
+          <h2 className="text-2xl font-black mb-8 leading-tight tracking-tight uppercase italic">{currentResponse.question_text}</h2>
 
           {currentResponse.question_type === 'mcq' ? (
-            <div className="bg-secondary/50 p-4 rounded-lg">
-              <p className="text-sm text-muted-foreground mb-2">Student's Answer:</p>
-              <p className="font-medium">{currentResponse.selected_option_text}</p>
+            <div className="border-2 border-foreground p-6 bg-secondary/30 mb-8">
+              <p className="text-[10px] font-black opacity-50 mb-4 tracking-widest">CAPTURED_DATA (MCQ):</p>
+              <p className="text-lg font-black tracking-tight">{currentResponse.selected_option_text || 'NO SELECTION'}</p>
             </div>
           ) : (
-            <div className="bg-secondary/50 p-4 rounded-lg min-h-24">
-              <p className="text-sm text-muted-foreground mb-2">Student's Answer:</p>
-              <p className="font-mono text-sm whitespace-pre-wrap">{currentResponse.short_answer_text || '(No answer)'}</p>
+            <div className="border-2 border-foreground p-6 bg-secondary/30 mb-8 min-h-[120px]">
+              <p className="text-[10px] font-black opacity-50 mb-4 tracking-widest">CAPTURED_DATA (EXTENDED):</p>
+              <p className="font-mono text-sm whitespace-pre-wrap leading-relaxed">{currentResponse.short_answer_text || '(NULL_RESPONSE)'}</p>
             </div>
           )}
 
-          {/* Grading Input */}
-          <div className="mt-6 space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                Marks Obtained (out of {currentResponse.marks})
-              </label>
-              <input
-                type="number"
-                min="0"
-                max={currentResponse.marks}
-                value={currentResponse.marks_obtained || 0}
-                onChange={(e) =>
-                  handleUpdateResponse(currentResponseIndex, parseFloat(e.target.value) || 0, currentResponse.admin_notes)
-                }
-                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              />
+          <div className="space-y-8 pt-8 border-t-2 border-foreground">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div>
+                <label className="block text-xs font-black mb-3 tracking-widest">CREDITED_VALUE</label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    min="0"
+                    max={currentResponse.marks}
+                    value={currentResponse.marks_obtained || 0}
+                    onChange={(e) =>
+                      handleUpdateResponse(currentResponseIndex, parseFloat(e.target.value) || 0, currentResponse.admin_notes)
+                    }
+                    className="w-full px-6 py-4 border-2 border-foreground bg-background focus:bg-foreground focus:text-background transition-all font-black text-xl"
+                  />
+                  <span className="absolute right-6 top-1/2 -translate-y-1/2 font-black opacity-50">/ {currentResponse.marks}</span>
+                </div>
+              </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">Admin Notes</label>
+              <label className="block text-xs font-black mb-3 tracking-widest">ADMINISTRATOR_NOTES</label>
               <textarea
                 value={currentResponse.admin_notes || ''}
                 onChange={(e) =>
                   handleUpdateResponse(currentResponseIndex, currentResponse.marks_obtained || 0, e.target.value)
                 }
-                placeholder="Add any notes about this answer..."
-                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary min-h-24"
+                placeholder="APPEND EVALUATION METADATA..."
+                className="w-full px-6 py-4 border-2 border-foreground bg-background focus:bg-foreground focus:text-background transition-all min-h-[100px] resize-none uppercase"
               />
             </div>
           </div>
         </div>
 
         {/* Navigation */}
-        <div className="flex gap-4">
-          <button
-            onClick={() => setCurrentResponseIndex(Math.max(0, currentResponseIndex - 1))}
-            disabled={currentResponseIndex === 0}
-            className="px-6 py-2 border rounded-lg disabled:opacity-50"
-          >
-            Previous
-          </button>
-          <button
-            onClick={() => setCurrentResponseIndex(Math.min(responses.length - 1, currentResponseIndex + 1))}
-            disabled={currentResponseIndex === responses.length - 1}
-            className="px-6 py-2 border rounded-lg disabled:opacity-50"
-          >
-            Next
-          </button>
+        <div className="flex flex-col md:flex-row gap-6">
+          <div className="flex gap-4 flex-1">
+            <button
+              onClick={() => setCurrentResponseIndex(Math.max(0, currentResponseIndex - 1))}
+              disabled={currentResponseIndex === 0}
+              className="flex-1 px-8 py-5 border-2 border-foreground font-black uppercase tracking-widest hover:bg-foreground hover:text-background disabled:opacity-20 transition-all"
+            >
+              [ PREVIOUS ]
+            </button>
+            <button
+              onClick={() => setCurrentResponseIndex(Math.min(responses.length - 1, currentResponseIndex + 1))}
+              disabled={currentResponseIndex === responses.length - 1}
+              className="flex-1 px-8 py-5 border-2 border-foreground font-black uppercase tracking-widest hover:bg-foreground hover:text-background disabled:opacity-20 transition-all"
+            >
+              [ NEXT ]
+            </button>
+          </div>
+          
           {currentResponseIndex === responses.length - 1 && (
             <button
               onClick={handleSaveAndSubmit}
               disabled={saving}
-              className="px-6 py-2 bg-primary text-primary-foreground rounded-lg ml-auto disabled:opacity-50"
+              className="px-10 py-5 bg-foreground text-background font-black uppercase tracking-widest hover:opacity-90 disabled:opacity-50 transition-opacity border-2 border-foreground shadow-[6px_6px_0px_0px_rgba(0,0,0,0.1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px]"
             >
-              {saving ? 'Saving...' : 'Complete Grading'}
+              {saving ? 'SYNCHRONIZING...' : 'FINALIZE_VERIFICATION >'}
             </button>
           )}
         </div>

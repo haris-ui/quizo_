@@ -43,35 +43,35 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-primary/10 to-secondary flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-card rounded-lg border p-8 shadow-xl">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold">Admin Portal</h1>
-          <p className="text-muted-foreground mt-2">
-            Sign in to your account
+    <main className="min-h-screen bg-background text-foreground flex items-center justify-center p-6 font-mono uppercase selection:bg-foreground selection:text-background">
+      <div className="w-full max-w-md bg-card border-4 border-foreground p-10">
+        <div className="text-center mb-10 border-b-4 border-foreground pb-6">
+          <h1 className="text-4xl font-black tracking-tighter uppercase">ADMIN ACCESS</h1>
+          <p className="text-xs mt-2 text-muted-foreground tracking-widest">
+            AUTHENTICATION REQUIRED
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-8">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium mb-2">
-              Email
+            <label htmlFor="email" className="block text-xs font-black mb-2 tracking-widest">
+              TERMINAL EMAIL
             </label>
             <input
               id="email"
               type="email"
-              placeholder="admin@example.com"
+              placeholder="ADMIN@QUIZO.SYSTEM"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full px-4 py-4 border-2 border-foreground bg-background focus:outline-none focus:bg-secondary transition-colors uppercase"
               required
               disabled={loading}
             />
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium mb-2">
-              Password
+            <label htmlFor="password" className="block text-xs font-black mb-2 tracking-widest">
+              SECURITY KEY
             </label>
             <input
               id="password"
@@ -79,24 +79,24 @@ export default function AdminLoginPage() {
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full px-4 py-4 border-2 border-foreground bg-background focus:outline-none focus:bg-secondary transition-colors"
               required
               disabled={loading}
             />
           </div>
 
           {error && (
-            <div className="p-4 bg-destructive/10 text-destructive rounded-lg text-sm">
-              {error}
+            <div className="p-4 border-2 border-foreground bg-foreground text-background font-black text-xs">
+              ERROR: {error.toUpperCase()}
             </div>
           )}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-primary text-primary-foreground py-2 rounded-lg font-semibold hover:opacity-90 disabled:opacity-50"
+            className="w-full bg-foreground text-background py-4 font-black uppercase tracking-widest hover:opacity-90 disabled:opacity-50 transition-opacity"
           >
-            {loading ? 'Please wait...' : 'Sign In'}
+            {loading ? 'PROCESSING...' : 'UN LOCK TERMINAL &gt;'}
           </button>
         </form>
       </div>
