@@ -113,12 +113,23 @@ export default function Home() {
       </div>
 
       {/* Footer */}
-      <footer className="border-t-2 border-foreground bg-foreground text-background py-12">
-        <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center text-sm font-mono uppercase tracking-widest">
-          <p className="mb-4 md:mb-0">Quizo // Secure Assessment Framework</p>
-          <Link href="/README_QUIZ.md" className="hover:underline">
-            Documentation
-          </Link>
+      <footer className="border-t-2 border-foreground bg-foreground text-background py-16">
+        <div className="max-w-6xl mx-auto px-6 text-center">
+          <div className="flex flex-col md:flex-row justify-between items-center text-sm font-mono uppercase tracking-widest mb-12">
+            <p className="mb-4 md:mb-0">Quizo // Secure Assessment Framework</p>
+            <Link href="/README_QUIZ.md" className="hover:underline">
+              Documentation
+            </Link>
+          </div>
+          
+          <div className="pt-12 border-t border-background/10">
+            <p className="font-mono text-[10px] uppercase tracking-[0.4em] mb-4 opacity-40">Development Protocol</p>
+            <p className="font-mono text-xs uppercase tracking-[0.2em] leading-relaxed">
+              Made by Muhammad Haris Zubair [CS Dept] <br className="md:hidden" />
+              <span className="hidden md:inline mx-4 opacity-30">//</span>
+              Noor-ul-Haseeb [AI Dept]
+            </p>
+          </div>
         </div>
       </footer>
     </main>
