@@ -9,7 +9,6 @@ export default function AdminLoginPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isSignUp, setIsSignUp] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -18,8 +17,7 @@ export default function AdminLoginPage() {
     setError(null);
 
     try {
-      const endpoint = isSignUp ? '/api/admin/register' : '/api/admin/login';
-      const response = await fetch(endpoint, {
+      const response = await fetch('/api/admin/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
@@ -50,7 +48,7 @@ export default function AdminLoginPage() {
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold">Admin Portal</h1>
           <p className="text-muted-foreground mt-2">
-            {isSignUp ? 'Create an admin account' : 'Sign in to your account'}
+            Sign in to your account
           </p>
         </div>
 
@@ -98,33 +96,9 @@ export default function AdminLoginPage() {
             disabled={loading}
             className="w-full bg-primary text-primary-foreground py-2 rounded-lg font-semibold hover:opacity-90 disabled:opacity-50"
           >
-            {loading ? 'Please wait...' : isSignUp ? 'Create Account' : 'Sign In'}
+            {loading ? 'Please wait...' : 'Sign In'}
           </button>
         </form>
-
-        <div className="mt-6 text-center text-sm">
-          {isSignUp ? (
-            <>
-              Already have an account?{' '}
-              <button
-                onClick={() => setIsSignUp(false)}
-                className="text-primary hover:underline font-medium"
-              >
-                Sign in
-              </button>
-            </>
-          ) : (
-            <>
-              Don't have an account?{' '}
-              <button
-                onClick={() => setIsSignUp(true)}
-                className="text-primary hover:underline font-medium"
-              >
-                Create one
-              </button>
-            </>
-          )}
-        </div>
       </div>
     </main>
   );

@@ -31,6 +31,9 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
   const [error, setError] = useState<string | null>(null);
   const supabaseRef = useRef(createClient());
   const warningShownRef = useRef(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isBanned, setIsBanned] = useState(false);
+  const [bannedReason, setBannedReason] = useState<string | null>(null);
 
   // Anti-cheating detection
   useEffect(() => {
@@ -80,21 +83,19 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
     };
   }, [quizId, rollNumber]);
 
-  // Request fullscreen on mount
-  useEffect(() => {
-    const enterFullscreen = async () => {
-      try {
-        const elem = document.documentElement;
-        if (elem.requestFullscreen) {
-          await elem.requestFullscreen();
-        }
-      } catch (err) {
-        console.error('Fullscreen request failed:', err);
+  // Request fullscreen explicitly
+  const enterFullscreen = async () => {
+    try {
+      const elem = document.documentElement;
+      if (elem.requestFullscreen) {
+        await elem.requestFullscreen();
+        setIsFullscreen(true);
       }
-    };
-
-    enterFullscreen();
-  }, []);
+    } catch (err) {
+      console.error('Fullscreen request failed:', err);
+      alert('You must allow fullscreen to take this quiz.');
+    }
+  };
 
   // Load questions and submission
   useEffect(() => {
@@ -223,8 +224,13 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
       })
       .eq('id', submission.id);
 
-    alert(`Cheating detected: ${reason}\nYour quiz has been marked as zero.`);
-    onSubmit();
+    setIsBanned(true);
+    setBannedReason(reason);
+    
+    // We delay the redirect so they can see the banned message
+    setTimeout(() => {
+      onSubmit();
+    }, 5000);
   };
 
   const handleResponseChange = (questionId: string, value: any) => {
@@ -275,7 +281,32 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
   };
 
   if (loading) return <div className="flex items-center justify-center h-screen">Loading quiz...</div>;
-  if (error) return <div className="flex items-center justify-center h-screen text-red-600">{error}</div>;
+  if (error) return <div className="flex items-center justify-center h-screen text-red-600 font-bold">{error}</div>;
+  if (isBanned) return (
+    <div className="flex flex-col items-center justify-center h-screen bg-destructive/10">
+      <h1 className="text-4xl font-bold text-destructive mb-4">Quiz Terminated</h1>
+      <p className="text-xl text-center max-w-lg mb-4">
+        Cheating detected: <strong>{bannedReason}</strong>
+      </p>
+      <p className="text-muted-foreground">Your score has been marked as 0. Redirecting...</p>
+    </div>
+  );
+  if (!isFullscreen) return (
+    <div className="flex flex-col items-center justify-center h-screen space-y-6">
+      <div className="text-center max-w-lg px-4">
+        <h1 className="text-3xl font-bold mb-4">Secure Exam Environment</h1>
+        <p className="text-muted-foreground mb-6">
+          This quiz requires fullscreen mode. Exiting fullscreen, switching tabs, or using restricted key combinations will immediately terminate your exam and result in a score of zero.
+        </p>
+        <button
+          onClick={enterFullscreen}
+          className="px-8 py-3 bg-primary text-primary-foreground text-lg font-semibold rounded-lg hover:opacity-90 shadow-lg"
+        >
+          Enter Fullscreen & Start Quiz
+        </button>
+      </div>
+    </div>
+  );
   if (questions.length === 0) return <div className="flex items-center justify-center h-screen">No questions found</div>;
 
   const currentQuestion = questions[currentQuestionIndex];
