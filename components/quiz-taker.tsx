@@ -31,6 +31,7 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
   const [error, setError] = useState<string | null>(null);
   const supabaseRef = useRef(createClient());
   const warningShownRef = useRef(false);
+  const isSubmittingRef = useRef(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isBanned, setIsBanned] = useState(false);
   const [bannedReason, setBannedReason] = useState<string | null>(null);
@@ -40,13 +41,15 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
     const supabase = supabaseRef.current;
 
     const handleVisibilityChange = async () => {
-      if (document.hidden) {
+      if (document.hidden && !isSubmittingRef.current) {
         console.log('[v0] Tab visibility changed - cheating detected');
         await markAsCheatingAndSubmit('Tab switch detected');
       }
     };
 
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (isSubmittingRef.current) return;
+      
       // Block sensitive keys
       const bannedKeys = ['F12', 'F11', 'Escape'];
       const isCtrlOrCmd = e.ctrlKey || e.metaKey;
@@ -59,15 +62,17 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
     };
 
     const handleFullscreenChange = async () => {
-      if (!document.fullscreenElement) {
+      if (!document.fullscreenElement && !isSubmittingRef.current) {
         console.log('[v0] Fullscreen exited - cheating detected');
         await markAsCheatingAndSubmit('Exited fullscreen');
       }
     };
 
     const handleWindowBlur = async () => {
-      console.log('[v0] Window lost focus - cheating detected');
-      await markAsCheatingAndSubmit('Window lost focus');
+      if (!isSubmittingRef.current) {
+        console.log('[v0] Window lost focus - cheating detected');
+        await markAsCheatingAndSubmit('Window lost focus');
+      }
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
@@ -243,6 +248,7 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
   const handleSubmit = async () => {
     if (!submission) return;
 
+    isSubmittingRef.current = true; // Prevents cheat checks from firing
     const supabase = supabaseRef.current;
 
     // Calculate score for MCQs
@@ -276,6 +282,11 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
         max_score: maxScore,
       })
       .eq('id', submission.id);
+
+    // Exit fullscreen safely
+    if (document.fullscreenElement) {
+      await document.exitFullscreen().catch(console.error);
+    }
 
     onSubmit();
   };

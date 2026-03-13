@@ -13,15 +13,9 @@ export default function Home() {
           <div className="flex gap-4">
             <Link
               href="/student"
-              className="px-6 py-2 rounded-lg hover:bg-secondary border transition"
+              className="px-6 py-2 rounded-lg hover:bg-secondary border transition text-primary hover:text-primary-foreground"
             >
               Student Portal
-            </Link>
-            <Link
-              href="/admin/login"
-              className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition"
-            >
-              Admin Login
             </Link>
           </div>
         </div>
@@ -44,12 +38,6 @@ export default function Home() {
               className="px-8 py-3 bg-primary text-primary-foreground rounded-lg hover:opacity-90 font-semibold"
             >
               Start Quiz
-            </Link>
-            <Link
-              href="/admin/login"
-              className="px-8 py-3 border rounded-lg hover:bg-secondary font-semibold"
-            >
-              Admin Access
             </Link>
           </div>
         </div>
@@ -109,12 +97,12 @@ export default function Home() {
         <div className="bg-card rounded-lg border p-8 mb-16">
           <h2 className="text-3xl font-bold mb-8 text-center">How It Works</h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="max-w-3xl mx-auto">
             {/* For Students */}
             <div>
               <h3 className="text-xl font-semibold mb-6 flex items-center gap-2">
                 <span className="bg-primary text-primary-foreground w-8 h-8 rounded-full flex items-center justify-center text-sm">1</span>
-                For Students
+                How to Take a Quiz
               </h3>
               <ol className="space-y-3 text-muted-foreground">
                 <li className="flex gap-3">
@@ -135,60 +123,21 @@ export default function Home() {
                 </li>
               </ol>
             </div>
-
-            {/* For Admins */}
-            <div>
-              <h3 className="text-xl font-semibold mb-6 flex items-center gap-2">
-                <span className="bg-primary text-primary-foreground w-8 h-8 rounded-full flex items-center justify-center text-sm">2</span>
-                For Admins
-              </h3>
-              <ol className="space-y-3 text-muted-foreground">
-                <li className="flex gap-3">
-                  <span className="font-bold text-primary min-w-6">1.</span>
-                  <span>Sign up/login to admin portal</span>
-                </li>
-                <li className="flex gap-3">
-                  <span className="font-bold text-primary min-w-6">2.</span>
-                  <span>Create quizzes with MCQ and short answer questions</span>
-                </li>
-                <li className="flex gap-3">
-                  <span className="font-bold text-primary min-w-6">3.</span>
-                  <span>View submissions, grade short answers, review results</span>
-                </li>
-                <li className="flex gap-3">
-                  <span className="font-bold text-primary min-w-6">4.</span>
-                  <span>Export results as CSV for further analysis</span>
-                </li>
-              </ol>
-            </div>
           </div>
         </div>
 
         {/* Quick Links */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-card rounded-lg border p-8 hover:shadow-md transition">
+        <div className="max-w-3xl mx-auto">
+          <div className="bg-card rounded-lg border p-8 hover:shadow-md transition text-center">
             <h3 className="text-2xl font-bold mb-3">Are you a Student?</h3>
             <p className="text-muted-foreground mb-6">
               Enter your roll number to view and take available quizzes.
             </p>
             <Link
               href="/student"
-              className="inline-block px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90"
+              className="inline-block px-8 py-3 bg-primary text-primary-foreground font-semibold rounded-lg hover:opacity-90 transition"
             >
               Go to Student Portal →
-            </Link>
-          </div>
-
-          <div className="bg-card rounded-lg border p-8 hover:shadow-md transition">
-            <h3 className="text-2xl font-bold mb-3">Are you an Admin?</h3>
-            <p className="text-muted-foreground mb-6">
-              Create and manage quizzes, grade submissions, and view detailed results.
-            </p>
-            <Link
-              href="/admin/login"
-              className="inline-block px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90"
-            >
-              Go to Admin Panel →
             </Link>
           </div>
         </div>

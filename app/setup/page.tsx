@@ -92,22 +92,12 @@ export default function SetupPage() {
               : 'Initialize Database'}
           </button>
 
-          {status === 'success' && (
-            <div className="space-y-3">
-              <Link
-                href="/admin/login"
-                className="block w-full px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:opacity-90 font-medium text-center"
-              >
-                Go to Admin Login
-              </Link>
               <Link
                 href="/student"
-                className="block w-full px-6 py-3 border rounded-lg hover:bg-secondary font-medium text-center"
+                className="block w-full px-6 py-3 bg-primary text-primary-foreground font-semibold rounded-lg hover:opacity-90 text-center"
               >
                 Go to Student Portal
               </Link>
-            </div>
-          )}
 
           {status === 'error' && (
             <button
