@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import Link from 'next/link';
@@ -17,12 +17,14 @@ interface Submission {
   grading_completed: boolean;
 }
 
-export default function ResultsPage({ params }: { params: { quizId: string } }) {
+export default function ResultsPage({ params }: { params: Promise<{ quizId: string }> }) {
   const [quiz, setQuiz] = useState<any>(null);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+
+  const resolvedParams = use(params);
 
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
@@ -32,7 +34,7 @@ export default function ResultsPage({ params }: { params: { quizId: string } }) 
     }
 
     loadResults();
-  }, [router, params.quizId]);
+  }, [router, resolvedParams.quizId]);
 
   const loadResults = async () => {
     try {
@@ -42,7 +44,7 @@ export default function ResultsPage({ params }: { params: { quizId: string } }) 
       const { data: quizData, error: quizError } = await supabase
         .from('quizzes')
         .select('*')
-        .eq('id', params.quizId)
+        .eq('id', resolvedParams.quizId)
         .single();
 
       if (quizError) throw quizError;

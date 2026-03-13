@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import Link from 'next/link';
@@ -26,7 +26,7 @@ interface Response {
   marks: number;
 }
 
-export default function GradingPage({ params }: { params: { submissionId: string } }) {
+export default function GradingPage({ params }: { params: Promise<{ submissionId: string }> }) {
   const [submission, setSubmission] = useState<any>(null);
   const [responses, setResponses] = useState<Response[]>([]);
   const [loading, setLoading] = useState(true);
@@ -34,6 +34,8 @@ export default function GradingPage({ params }: { params: { submissionId: string
   const [error, setError] = useState<string | null>(null);
   const [currentResponseIndex, setCurrentResponseIndex] = useState(0);
   const router = useRouter();
+
+  const resolvedParams = use(params);
 
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
@@ -43,7 +45,7 @@ export default function GradingPage({ params }: { params: { submissionId: string
     }
 
     loadSubmission();
-  }, [router, params.submissionId]);
+  }, [router, resolvedParams.submissionId]);
 
   const loadSubmission = async () => {
     try {
