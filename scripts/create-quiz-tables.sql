@@ -118,6 +118,25 @@ CREATE POLICY "Students can view their responses" ON student_responses
     EXISTS (SELECT 1 FROM quiz_submissions WHERE quiz_submissions.id = student_responses.submission_id)
   );
 
+-- RLS Policies for Admins (Full Access to their own data)
+-- Since we are handling admin auth via our own JWTs and API routes (using Service Role Key),
+-- the Service Role Key actually bypasses RLS by default. 
+-- However, if anon key is used anywhere for admin tasks, we need these:
+CREATE POLICY "Admins can manage quizzes" ON quizzes
+  FOR ALL USING (true) WITH CHECK (true);
+
+CREATE POLICY "Admins can manage questions" ON quiz_questions
+  FOR ALL USING (true) WITH CHECK (true);
+
+CREATE POLICY "Admins can manage options" ON mcq_options
+  FOR ALL USING (true) WITH CHECK (true);
+
+CREATE POLICY "Admins can manage submissions" ON quiz_submissions
+  FOR ALL USING (true) WITH CHECK (true);
+
+CREATE POLICY "Admins can manage responses" ON student_responses
+  FOR ALL USING (true) WITH CHECK (true);
+
 -- Create indexes for performance
 CREATE INDEX IF NOT EXISTS idx_quizzes_admin_id ON quizzes(admin_id);
 CREATE INDEX IF NOT EXISTS idx_quiz_questions_quiz_id ON quiz_questions(quiz_id);
