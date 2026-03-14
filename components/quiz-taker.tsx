@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import { useRouter } from 'next/navigation'; // Added for redirection
 
 interface Question {
   id: string;
@@ -23,23 +24,34 @@ interface QuizTakerProps {
 }
 
 export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerProps) {
+  const router = useRouter(); // Initialize router
   const [questions, setQuestions] = useState<Question[]>([]);
   const [responses, setResponses] = useState<Record<string, any>>({});
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [submission, setSubmission] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // New state for success screen
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isBanned, setIsBanned] = useState(false);
+  const [bannedReason, setBannedReason] = useState<string | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
   const supabaseRef = useRef(createClient());
   const warningShownRef = useRef(false);
   const isSubmittingRef = useRef(false);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const [isBanned, setIsBanned] = useState(false);
-  const [bannedReason, setBannedReason] = useState<string | null>(null);
+  
+  // FIXED: Ref to hold the latest submission to avoid stale closures in event listeners
+  const submissionRef = useRef<any>(null);
+
+  // Sync state to ref
+  useEffect(() => {
+    submissionRef.current = submission;
+  }, [submission]);
 
   // Anti-cheating detection
   useEffect(() => {
-    const supabase = supabaseRef.current;
-
     const handleVisibilityChange = async () => {
       if (document.hidden && !isSubmittingRef.current) {
         console.log('[v0] Tab visibility changed - cheating detected');
@@ -47,17 +59,16 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
       }
     };
 
-    const handleKeyDown = (e: KeyboardEvent) => {
+    const handleKeyDown = async (e: KeyboardEvent) => {
       if (isSubmittingRef.current) return;
       
-      // Block sensitive keys
       const bannedKeys = ['F12', 'F11', 'Escape'];
       const isCtrlOrCmd = e.ctrlKey || e.metaKey;
       
       if (bannedKeys.includes(e.key) || (isCtrlOrCmd && ['s', 'c', 'v'].includes(e.key.toLowerCase()))) {
         e.preventDefault();
         console.log('[v0] Banned key pressed - cheating detected');
-        markAsCheatingAndSubmit('Banned key pressed');
+        await markAsCheatingAndSubmit('Banned key combination pressed');
       }
     };
 
@@ -75,18 +86,30 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
       }
     };
 
+    const handleClipboard = async (e: ClipboardEvent) => {
+      if (!isSubmittingRef.current) {
+        e.preventDefault();
+        console.log('[v0] Clipboard used - cheating detected');
+        await markAsCheatingAndSubmit('Copy/Paste detected');
+      }
+    };
+
     document.addEventListener('visibilitychange', handleVisibilityChange);
     document.addEventListener('keydown', handleKeyDown);
     document.addEventListener('fullscreenchange', handleFullscreenChange);
     window.addEventListener('blur', handleWindowBlur);
+    document.addEventListener('copy', handleClipboard);
+    document.addEventListener('paste', handleClipboard);
 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       document.removeEventListener('keydown', handleKeyDown);
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
       window.removeEventListener('blur', handleWindowBlur);
+      document.removeEventListener('copy', handleClipboard);
+      document.removeEventListener('paste', handleClipboard);
     };
-  }, [quizId, rollNumber]);
+  }, []); // Clean dependency array since we use refs now
 
   // Request fullscreen explicitly
   const enterFullscreen = async () => {
@@ -108,7 +131,6 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
       const supabase = supabaseRef.current;
 
       try {
-        // Create or get submission
         const { data: existingSubmission, error: checkError } = await supabase
           .from('quiz_submissions')
           .select('*')
@@ -135,7 +157,6 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
         if (submitError) throw submitError;
         setSubmission(newSubmission);
 
-        // Load questions with options
         const { data: questionsData, error: questionsError } = await supabase
           .from('quiz_questions')
           .select(`
@@ -190,13 +211,11 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
             .single();
 
           if (existingResponse.data) {
-            // Update
             await supabase
               .from('student_responses')
               .update(response)
               .eq('id', existingResponse.data.id);
           } else {
-            // Insert
             await supabase
               .from('student_responses')
               .insert([{
@@ -214,8 +233,10 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
   }, [submission, responses, questions]);
 
   const markAsCheatingAndSubmit = async (reason: string) => {
-    if (warningShownRef.current || !submission) return;
+    // FIXED: Use submissionRef.current instead of submission
+    if (warningShownRef.current || !submissionRef.current) return;
     warningShownRef.current = true;
+    isSubmittingRef.current = true; // Stop other listeners from firing simultaneously
 
     const supabase = supabaseRef.current;
 
@@ -227,14 +248,15 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
         submitted_at: new Date().toISOString(),
         total_score: 0,
       })
-      .eq('id', submission.id);
+      .eq('id', submissionRef.current.id);
 
     setIsBanned(true);
     setBannedReason(reason);
     
-    // We delay the redirect so they can see the banned message
+    // Call onSubmit and redirect after a delay
     setTimeout(() => {
       onSubmit();
+      router.push('/');
     }, 5000);
   };
 
@@ -248,10 +270,9 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
   const handleSubmit = async () => {
     if (!submission) return;
 
-    isSubmittingRef.current = true; // Prevents cheat checks from firing
+    isSubmittingRef.current = true; // Prevents cheat checks from firing on normal exit
     const supabase = supabaseRef.current;
 
-    // Calculate score for MCQs
     let totalScore = 0;
 
     for (const [questionId, response] of Object.entries(responses)) {
@@ -273,7 +294,6 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
 
     const maxScore = questions.reduce((sum, q) => sum + q.marks, 0);
 
-    // Submit
     await supabase
       .from('quiz_submissions')
       .update({
@@ -283,12 +303,18 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
       })
       .eq('id', submission.id);
 
-    // Exit fullscreen safely
     if (document.fullscreenElement) {
       await document.exitFullscreen().catch(console.error);
     }
 
-    onSubmit();
+    // Show success screen
+    setIsSubmitted(true);
+
+    // Redirect to home after 3 seconds
+    setTimeout(() => {
+      onSubmit();
+      router.push('/');
+    }, 3000);
   };
 
   if (loading) return <div className="flex items-center justify-center h-screen font-mono uppercase tracking-widest bg-background text-foreground">Loading protocol...</div>;
@@ -297,14 +323,30 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
   if (isBanned) return (
     <div className="flex flex-col items-center justify-center h-screen bg-background text-foreground p-6 font-mono uppercase">
       <div className="border-4 border-foreground p-12 max-w-2xl w-full text-center">
-        <h1 className="text-5xl font-black mb-8 tracking-tighter">ASSESSMENT TERMINATED</h1>
+        <h1 className="text-5xl font-black mb-8 tracking-tighter text-red-600">ASSESSMENT TERMINATED</h1>
         <div className="p-4 bg-foreground text-background mb-8 font-black">
           VIOLATION DETECTED: {bannedReason}
         </div>
         <p className="text-base mb-8 leading-relaxed">
           The environment integrity has been compromised. Your identification has been flagged and your score has been recorded as zero (0).
         </p>
-        <p className="text-xs opacity-50">REDIRECTING TO TERMINAL HOME...</p>
+        <p className="text-xs opacity-50 animate-pulse">REDIRECTING TO HOME...</p>
+      </div>
+    </div>
+  );
+
+  // New Success Screen
+  if (isSubmitted) return (
+    <div className="flex flex-col items-center justify-center h-screen bg-background text-foreground p-6 font-mono uppercase">
+      <div className="border-4 border-foreground p-12 max-w-2xl w-full text-center">
+        <h1 className="text-5xl font-black mb-8 tracking-tighter text-green-600">ASSESSMENT COMPLETE</h1>
+        <div className="p-4 bg-foreground text-background mb-8 font-black">
+          STATUS: SUCCESSFULLY TRANSMITTED
+        </div>
+        <p className="text-base mb-8 leading-relaxed">
+          Your responses have been securely logged and uploaded to the mainframe.
+        </p>
+        <p className="text-xs opacity-50 animate-pulse">REDIRECTING TO HOME...</p>
       </div>
     </div>
   );
@@ -321,7 +363,7 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
           <ul className="list-none space-y-4">
             <li className="flex gap-4"><span className="font-black">[!]</span> <span>EXITING FULLSCREEN = IMMEDIATE FAILURE.</span></li>
             <li className="flex gap-4"><span className="font-black">[!]</span> <span>TAB SWITCHING = IMMEDIATE FAILURE.</span></li>
-            <li className="flex gap-4"><span className="font-black">[!]</span> <span>KEYS (ESC, F11, CTRL+C) = PROHIBITED.</span></li>
+            <li className="flex gap-4"><span className="font-black">[!]</span> <span>KEYS (ESC, F11, CTRL+C/V) = PROHIBITED.</span></li>
           </ul>
         </div>
         <button
@@ -340,13 +382,16 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
   const currentResponse = responses[currentQuestion.id] || {};
 
   return (
-    <div className="min-h-screen bg-background text-foreground p-8 font-mono uppercase selection:bg-foreground selection:text-background">
+    <div 
+      className="min-h-screen bg-background text-foreground p-8 font-mono uppercase selection:bg-foreground selection:text-background"
+      onContextMenu={(e) => e.preventDefault()} // Prevents right-click cheating
+    >
       <div className="max-w-4xl mx-auto">
         {/* Progress Header */}
         <div className="mb-12">
           <div className="flex justify-between items-end mb-4">
             <div>
-              <h2 className="text-3x font-black tracking-tighter">QUIZO ASSESSMENT</h2>
+              <h2 className="text-3xl font-black tracking-tighter">QUIZO ASSESSMENT</h2>
               <p className="text-xs text-muted-foreground mt-1">ID: {rollNumber} // ITEM {currentQuestionIndex + 1} OF {questions.length}</p>
             </div>
             <div className="text-right">
@@ -399,6 +444,7 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
               onChange={(e) => handleResponseChange(currentQuestion.id, { short_answer_text: e.target.value })}
               placeholder="ENTER RESPONSE SYSTEM..."
               className="w-full p-6 border-2 border-foreground bg-background font-mono text-lg min-h-[250px] focus:outline-none focus:bg-secondary transition-colors resize-none placeholder:opacity-30"
+              spellCheck={false}
             />
           )}
         </div>
