@@ -2,9 +2,10 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { useRouter } from 'next/navigation'; // Added for redirection
+import { useRouter } from 'next/navigation';
 import CodeMirror from '@uiw/react-codemirror';
 import { cpp } from '@codemirror/lang-cpp';
+
 interface Question {
   id: string;
   question_text: string;
@@ -25,7 +26,9 @@ interface QuizTakerProps {
 }
 
 export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerProps) {
-  const router = useRouter(); // Initialize router
+  const router = useRouter(); 
+  
+  // 1. All Standard States
   const [questions, setQuestions] = useState<Question[]>([]);
   const [responses, setResponses] = useState<Record<string, any>>({});
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -33,23 +36,34 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // New state for success screen
+  // 2. Success/Ban/Fullscreen States
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isBanned, setIsBanned] = useState(false);
   const [bannedReason, setBannedReason] = useState<string | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
+  // 3. Timer State (MOVED INSIDE)
+  const [timeLeft, setTimeLeft] = useState<number | null>(null);
+
+  // 4. Refs
   const supabaseRef = useRef(createClient());
   const warningShownRef = useRef(false);
   const isSubmittingRef = useRef(false);
-
-  // FIXED: Ref to hold the latest submission to avoid stale closures in event listeners
   const submissionRef = useRef<any>(null);
+  
+  // Timer Refs (MOVED INSIDE & PLACED AFTER STATES)
+  const responsesRef = useRef(responses);
+  const questionsRef = useRef(questions);
 
-  // Sync state to ref
+  // 5. Syncing Effects
   useEffect(() => {
     submissionRef.current = submission;
   }, [submission]);
+
+  useEffect(() => {
+    responsesRef.current = responses;
+    questionsRef.current = questions;
+  }, [responses, questions]);
 
   // Anti-cheating detection
   useEffect(() => {
@@ -110,7 +124,7 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
       document.removeEventListener('copy', handleClipboard);
       document.removeEventListener('paste', handleClipboard);
     };
-  }, []); // Clean dependency array since we use refs now
+  }, []); 
 
   // Request fullscreen explicitly
   const enterFullscreen = async () => {
@@ -234,10 +248,9 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
   }, [submission, responses, questions]);
 
   const markAsCheatingAndSubmit = async (reason: string) => {
-    // FIXED: Use submissionRef.current instead of submission
     if (warningShownRef.current || !submissionRef.current) return;
     warningShownRef.current = true;
-    isSubmittingRef.current = true; // Stop other listeners from firing simultaneously
+    isSubmittingRef.current = true; 
 
     const supabase = supabaseRef.current;
 
@@ -254,7 +267,6 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
     setIsBanned(true);
     setBannedReason(reason);
 
-    // Call onSubmit and redirect after a delay
     setTimeout(() => {
       onSubmit();
       router.push('/');
@@ -269,15 +281,19 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
   };
 
   const handleSubmit = async () => {
-    if (!submission) return;
+    if (!submissionRef.current) return;
 
-    isSubmittingRef.current = true; // Prevents cheat checks from firing on normal exit
+    isSubmittingRef.current = true;
     const supabase = supabaseRef.current;
 
     let totalScore = 0;
+    
+    // Using refs safely ensures we catch the latest state when timer auto-submits
+    const currentResponses = responsesRef.current;
+    const currentQuestions = questionsRef.current;
 
-    for (const [questionId, response] of Object.entries(responses)) {
-      const question = questions.find(q => q.id === questionId);
+    for (const [questionId, response] of Object.entries(currentResponses)) {
+      const question = currentQuestions.find(q => q.id === questionId);
       if (!question) continue;
 
       if (question.question_type === 'mcq' && response.selected_option_id) {
@@ -293,7 +309,7 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
       }
     }
 
-    const maxScore = questions.reduce((sum, q) => sum + q.marks, 0);
+    const maxScore = currentQuestions.reduce((sum, q) => sum + q.marks, 0);
 
     await supabase
       .from('quiz_submissions')
@@ -302,21 +318,63 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
         total_score: totalScore,
         max_score: maxScore,
       })
-      .eq('id', submission.id);
+      .eq('id', submissionRef.current.id);
 
     if (document.fullscreenElement) {
       await document.exitFullscreen().catch(console.error);
     }
 
-    // Show success screen
     setIsSubmitted(true);
 
-    // Redirect to home after 3 seconds
     setTimeout(() => {
       onSubmit();
       router.push('/');
     }, 3000);
   };
+
+  // Auto-Submit Timer
+  useEffect(() => {
+    if (!submission) return;
+
+    // 30 minutes duration
+    const DURATION_MINUTES = 30; 
+    const durationMs = DURATION_MINUTES * 60 * 1000;
+    
+    const startTime = new Date(submission.started_at).getTime();
+    const endTime = startTime + durationMs;
+
+    const timerInterval = setInterval(() => {
+      if (isSubmittingRef.current) {
+        clearInterval(timerInterval);
+        return;
+      }
+
+      const now = new Date().getTime();
+      const remaining = endTime - now;
+
+      if (remaining <= 0) {
+        clearInterval(timerInterval);
+        setTimeLeft(0);
+        console.log('[v0] Time exhausted - auto submitting');
+        handleSubmit(); 
+      } else {
+        setTimeLeft(remaining);
+      }
+    }, 1000);
+
+    return () => clearInterval(timerInterval);
+  }, [submission]);
+
+  // Helper to format the countdown timer
+  const formatTime = (ms: number) => {
+    if (ms <= 0) return "00:00";
+    const totalSeconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+    const seconds = (totalSeconds % 60).toString().padStart(2, '0');
+    return `${minutes}:${seconds}`;
+  };
+
+  // --- RENDER BLOCK --- //
 
   if (loading) return <div className="flex items-center justify-center h-screen font-mono uppercase tracking-widest bg-background text-foreground">Loading protocol...</div>;
   if (error) return <div className="flex items-center justify-center h-screen text-foreground font-black uppercase tracking-widest bg-background p-6 border-4 border-foreground">{error}</div>;
@@ -336,7 +394,6 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
     </div>
   );
 
-  // New Success Screen
   if (isSubmitted) return (
     <div className="flex flex-col items-center justify-center h-screen bg-background text-foreground p-6 font-mono uppercase">
       <div className="border-4 border-foreground p-12 max-w-2xl w-full text-center">
@@ -385,7 +442,7 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
   return (
     <div
       className="min-h-screen bg-background text-foreground p-8 font-mono uppercase selection:bg-foreground selection:text-background"
-      onContextMenu={(e) => e.preventDefault()} // Prevents right-click cheating
+      onContextMenu={(e) => e.preventDefault()} 
     >
       <div className="max-w-4xl mx-auto">
         {/* Progress Header */}
@@ -395,18 +452,22 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
               <h2 className="text-3xl font-black tracking-tighter">QUIZO ASSESSMENT</h2>
               <p className="text-xs text-muted-foreground mt-1">ID: {rollNumber} // ITEM {currentQuestionIndex + 1} OF {questions.length}</p>
             </div>
-            <div className="text-right">
+            <div className="text-right flex flex-col items-end gap-1">
+              {timeLeft !== null && (
+                <div className={`text-xl font-black tracking-widest ${timeLeft < 300000 ? 'text-red-500 animate-pulse' : ''}`}>
+                  T-MINUS {formatTime(timeLeft)}
+                </div>
+              )}
               <span className="text-sm font-black tracking-widest">{Math.round(((currentQuestionIndex + 1) / questions.length) * 100)}% COMPLETE</span>
             </div>
           </div>
           <div className="w-full bg-secondary h-4 border-2 border-foreground">
-            <div
+            <div 
               className="bg-foreground h-full transition-all duration-500"
               style={{ width: `${((currentQuestionIndex + 1) / questions.length) * 100}%` }}
             />
           </div>
         </div>
-
         {/* Question Area */}
         <div className="border-4 border-foreground p-10 bg-card mb-8">
           <div className="flex justify-between items-start mb-8 border-b-2 border-foreground pb-4">
@@ -448,7 +509,7 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
                 height="350px"
                 extensions={[cpp()]}
                 onChange={(value) => handleResponseChange(currentQuestion.id, { short_answer_text: value })}
-                theme="dark" // Forces a dark mode that usually blends well with terminal themes
+                theme="dark"
                 basicSetup={{
                   lineNumbers: true,
                   foldGutter: false,
