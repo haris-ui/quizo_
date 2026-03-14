@@ -42,16 +42,15 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
   const [bannedReason, setBannedReason] = useState<string | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
-  // 3. Timer State (MOVED INSIDE)
+  // 3. Timer States
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
+  const [quizDuration, setQuizDuration] = useState<number | null>(null);
 
   // 4. Refs
   const supabaseRef = useRef(createClient());
   const warningShownRef = useRef(false);
   const isSubmittingRef = useRef(false);
   const submissionRef = useRef<any>(null);
-  
-  // Timer Refs (MOVED INSIDE & PLACED AFTER STATES)
   const responsesRef = useRef(responses);
   const questionsRef = useRef(questions);
 
@@ -140,12 +139,27 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
     }
   };
 
-  // Load questions and submission
+  // Load questions, duration, and submission
   useEffect(() => {
     const loadQuiz = async () => {
       const supabase = supabaseRef.current;
 
       try {
+        // Fetch dynamic quiz duration
+        const { data: quizData, error: quizError } = await supabase
+          .from('quizzes')
+          .select('duration_minutes')
+          .eq('id', quizId)
+          .single();
+
+        if (quizError) {
+          console.warn('Could not fetch quiz duration, defaulting to 30 mins', quizError);
+          setQuizDuration(30);
+        } else {
+          setQuizDuration(quizData?.duration_minutes || 30);
+        }
+
+        // Check for existing submission
         const { data: existingSubmission, error: checkError } = await supabase
           .from('quiz_submissions')
           .select('*')
@@ -159,6 +173,7 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
           return;
         }
 
+        // Create new submission
         const { data: newSubmission, error: submitError } = await supabase
           .from('quiz_submissions')
           .insert([{
@@ -172,6 +187,7 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
         if (submitError) throw submitError;
         setSubmission(newSubmission);
 
+        // Fetch questions
         const { data: questionsData, error: questionsError } = await supabase
           .from('quiz_questions')
           .select(`
@@ -332,15 +348,17 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
     }, 3000);
   };
 
-  // Auto-Submit Timer
+  // Dynamic Auto-Submit Timer
   useEffect(() => {
-    if (!submission) return;
+    if (!submission || !quizDuration) return;
 
-    // 30 minutes duration
-    const DURATION_MINUTES = 30; 
-    const durationMs = DURATION_MINUTES * 60 * 1000;
+    const durationMs = quizDuration * 60 * 1000;
     
-    const startTime = new Date(submission.started_at).getTime();
+    // Timezone safe parser
+    const dbTime = submission.started_at;
+    const safeStartTimeStr = (dbTime.endsWith('Z') || dbTime.includes('+')) ? dbTime : `${dbTime}Z`;
+    
+    const startTime = new Date(safeStartTimeStr).getTime();
     const endTime = startTime + durationMs;
 
     const timerInterval = setInterval(() => {
@@ -363,7 +381,7 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
     }, 1000);
 
     return () => clearInterval(timerInterval);
-  }, [submission]);
+  }, [submission, quizDuration]);
 
   // Helper to format the countdown timer
   const formatTime = (ms: number) => {
