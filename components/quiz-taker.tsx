@@ -3,7 +3,8 @@
 import { useEffect, useState, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation'; // Added for redirection
-
+import CodeMirror from '@uiw/react-codemirror';
+import { cpp } from '@codemirror/lang-cpp';
 interface Question {
   id: string;
   question_text: string;
@@ -31,7 +32,7 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
   const [submission, setSubmission] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // New state for success screen
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isBanned, setIsBanned] = useState(false);
@@ -41,7 +42,7 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
   const supabaseRef = useRef(createClient());
   const warningShownRef = useRef(false);
   const isSubmittingRef = useRef(false);
-  
+
   // FIXED: Ref to hold the latest submission to avoid stale closures in event listeners
   const submissionRef = useRef<any>(null);
 
@@ -61,10 +62,10 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
 
     const handleKeyDown = async (e: KeyboardEvent) => {
       if (isSubmittingRef.current) return;
-      
+
       const bannedKeys = ['F12', 'F11', 'Escape'];
       const isCtrlOrCmd = e.ctrlKey || e.metaKey;
-      
+
       if (bannedKeys.includes(e.key) || (isCtrlOrCmd && ['s', 'c', 'v'].includes(e.key.toLowerCase()))) {
         e.preventDefault();
         console.log('[v0] Banned key pressed - cheating detected');
@@ -198,7 +199,7 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
     const interval = setInterval(async () => {
       if (submission && Object.keys(responses).length > 0) {
         const supabase = supabaseRef.current;
-        
+
         for (const [questionId, response] of Object.entries(responses)) {
           const question = questions.find(q => q.id === questionId);
           if (!question) continue;
@@ -252,7 +253,7 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
 
     setIsBanned(true);
     setBannedReason(reason);
-    
+
     // Call onSubmit and redirect after a delay
     setTimeout(() => {
       onSubmit();
@@ -319,7 +320,7 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
 
   if (loading) return <div className="flex items-center justify-center h-screen font-mono uppercase tracking-widest bg-background text-foreground">Loading protocol...</div>;
   if (error) return <div className="flex items-center justify-center h-screen text-foreground font-black uppercase tracking-widest bg-background p-6 border-4 border-foreground">{error}</div>;
-  
+
   if (isBanned) return (
     <div className="flex flex-col items-center justify-center h-screen bg-background text-foreground p-6 font-mono uppercase">
       <div className="border-4 border-foreground p-12 max-w-2xl w-full text-center">
@@ -382,7 +383,7 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
   const currentResponse = responses[currentQuestion.id] || {};
 
   return (
-    <div 
+    <div
       className="min-h-screen bg-background text-foreground p-8 font-mono uppercase selection:bg-foreground selection:text-background"
       onContextMenu={(e) => e.preventDefault()} // Prevents right-click cheating
     >
@@ -399,7 +400,7 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
             </div>
           </div>
           <div className="w-full bg-secondary h-4 border-2 border-foreground">
-            <div 
+            <div
               className="bg-foreground h-full transition-all duration-500"
               style={{ width: `${((currentQuestionIndex + 1) / questions.length) * 100}%` }}
             />
@@ -418,13 +419,12 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
           {currentQuestion.question_type === 'mcq' ? (
             <div className="space-y-4">
               {currentQuestion.options?.map(option => (
-                <label 
-                  key={option.id} 
-                  className={`flex items-center p-6 border-2 transition-colors cursor-pointer ${
-                    currentResponse.selected_option_id === option.id 
-                    ? 'bg-foreground text-background border-foreground' 
+                <label
+                  key={option.id}
+                  className={`flex items-center p-6 border-2 transition-colors cursor-pointer ${currentResponse.selected_option_id === option.id
+                    ? 'bg-foreground text-background border-foreground'
                     : 'border-foreground hover:bg-secondary'
-                  }`}
+                    }`}
                 >
                   <input
                     type="radio"
@@ -439,13 +439,29 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
               ))}
             </div>
           ) : (
-            <textarea
-              value={currentResponse.short_answer_text || ''}
-              onChange={(e) => handleResponseChange(currentQuestion.id, { short_answer_text: e.target.value })}
-              placeholder="ENTER RESPONSE SYSTEM..."
-              className="w-full p-6 border-2 border-foreground bg-background font-mono text-lg min-h-[250px] focus:outline-none focus:bg-secondary transition-colors resize-none placeholder:opacity-30"
-              spellCheck={false}
-            />
+            <div className="border-2 border-foreground bg-background text-left font-mono normal-case">
+              <div className="bg-foreground text-background text-xs px-4 py-1 font-black tracking-widest uppercase">
+                // CPP_EDITOR_TERMINAL
+              </div>
+              <CodeMirror
+                value={currentResponse.short_answer_text || ''}
+                height="350px"
+                extensions={[cpp()]}
+                onChange={(value) => handleResponseChange(currentQuestion.id, { short_answer_text: value })}
+                theme="dark" // Forces a dark mode that usually blends well with terminal themes
+                basicSetup={{
+                  lineNumbers: true,
+                  foldGutter: false,
+                  dropCursor: false,
+                  allowMultipleSelections: false,
+                  indentOnInput: true,
+                  bracketMatching: true,
+                  closeBrackets: true,
+                  autocompletion: true,
+                }}
+                className="text-sm"
+              />
+            </div>
           )}
         </div>
 
@@ -477,7 +493,7 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
 
         {/* Security Warning Sticky */}
         <div className="mt-12 text-center">
-            <p className="text-[10px] tracking-[0.2em] font-black opacity-30">SECURITY PROTOCOL ACTIVE // CONTINUOUS PERSISTENCE ENABLED</p>
+          <p className="text-[10px] tracking-[0.2em] font-black opacity-30">SECURITY PROTOCOL ACTIVE // CONTINUOUS PERSISTENCE ENABLED</p>
         </div>
       </div>
     </div>
