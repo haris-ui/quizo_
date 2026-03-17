@@ -493,7 +493,7 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
             <span className="font-black text-sm">{currentQuestion.marks} MARKS</span>
           </div>
           
-          <h2 className="text-lg font-black mb-10 leading-snug tracking-tight italic">"{currentQuestion.question_text}"</h2>
+         <h2 className="text-base font-black mb-10 leading-snug tracking-tight italic whitespace-pre-wrap">"{currentQuestion.question_text}"</h2>
 
           {currentQuestion.question_type === 'mcq' ? (
             <div className="space-y-4">
