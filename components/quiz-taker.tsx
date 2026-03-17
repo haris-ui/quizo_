@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import CodeMirror from '@uiw/react-codemirror';
 import { cpp } from '@codemirror/lang-cpp';
+import ReactMarkdown from 'react-markdown';
 
 interface Question {
   id: string;
@@ -486,15 +487,37 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
             />
           </div>
         </div>
+        
         {/* Question Area */}
         <div className="border-4 border-foreground p-10 bg-card mb-8">
-          <div className="flex justify-between items-start mb-8 border-b-2 border-foreground pb-4">
+          <div className="flex justify-between items-start mb-8 border-b-2 border-foreground pb-4 uppercase">
             <span className="bg-foreground text-background px-4 py-1 font-black text-sm">ITEM {currentQuestionIndex + 1}</span>
             <span className="font-black text-sm">{currentQuestion.marks} MARKS</span>
           </div>
-          
-         <h2 className="text-base font-black mb-10 leading-snug tracking-tight italic whitespace-pre-wrap">"{currentQuestion.question_text}"</h2>
 
+          {/* FIXED: Markdown Renderer */}
+          <div className="mb-10 text-foreground normal-case font-normal">
+            <ReactMarkdown
+              components={{
+                p: ({ node, ...props }) => (
+                  <p className="text-lg leading-relaxed tracking-tight mb-4 whitespace-pre-wrap font-normal" {...props} />
+                ),
+                strong: ({ node, ...props }) => (
+                  <strong className="font-black bg-foreground text-background px-2 py-0.5" {...props} />
+                ),
+                h1: ({ node, ...props }) => (
+                  <h1 className="text-3xl font-black mb-6 mt-8 border-b-2 border-foreground/30 pb-2 uppercase" {...props} />
+                ),
+                ul: ({ node, ...props }) => (
+                  <ul className="list-disc list-inside mb-4 space-y-2 text-lg font-normal" {...props} />
+                )
+              }}
+            >
+              {currentQuestion.question_text}
+            </ReactMarkdown>
+          </div>
+
+          {/* RESTORED: MCQ and CodeMirror Inputs */}
           {currentQuestion.question_type === 'mcq' ? (
             <div className="space-y-4">
               {currentQuestion.options?.map(option => (
@@ -513,7 +536,7 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
                     onChange={(e) => handleResponseChange(currentQuestion.id, { selected_option_id: e.target.value })}
                     className="sr-only"
                   />
-                  <span className="text-lg font-bold">{option.option_text}</span>
+                  <span className="text-lg font-bold uppercase">{option.option_text}</span>
                 </label>
               ))}
             </div>
