@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
+import ReactMarkdown from 'react-markdown';
 
 interface Question {
   id?: string;
@@ -366,12 +367,16 @@ function QuestionEditor({
 
       <div className="space-y-6">
         <div>
-          <label className="block text-xs font-black mb-3 tracking-widest text-foreground/50">ITEM TEXT *</label>
+          {/* UPDATED: Added Markdown Support hints and removed uppercase lock */}
+          <div className="flex justify-between items-end mb-3">
+            <label className="block text-xs font-black tracking-widest text-foreground/50">ITEM TEXT *</label>
+            <span className="text-[10px] text-foreground/40 font-mono font-black">SUPPORTS MARKDOWN: **BOLD** | # LARGE | - BULLETS</span>
+          </div>
           <textarea
             value={question.question_text}
             onChange={(e) => onUpdate({ ...question, question_text: e.target.value })}
-            placeholder="DEFINE PROMPT..."
-            className="w-full px-6 py-4 border-2 border-foreground bg-background focus:outline-none focus:bg-secondary transition-colors min-h-[100px] resize-none uppercase font-bold"
+            placeholder="USE **BOLD** FOR EMPHASIS, # FOR HEADINGS, AND - FOR BULLET POINTS..."
+            className="w-full px-6 py-4 border-2 border-foreground bg-background focus:outline-none focus:bg-secondary transition-colors min-h-[100px] resize-none font-bold normal-case"
           />
         </div>
 
