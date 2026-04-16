@@ -4,6 +4,9 @@ import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import Link from 'next/link';
+import CodeMirror from '@uiw/react-codemirror';
+import { cpp } from '@codemirror/lang-cpp';
+import ReactMarkdown from 'react-markdown';
 
 interface Response {
   id: string;
@@ -188,7 +191,26 @@ export default function ReviewPage({ params }: { params: Promise<{ submissionId:
             NODE_VALUATION: {currentResponse.marks}
           </div>
           
-          <h2 className="text-2xl font-black mb-8 leading-tight italic">{currentResponse.question_text}</h2>
+          <div className="mb-10 text-foreground normal-case font-normal">
+            <ReactMarkdown
+              components={{
+                p: ({ node, ...props }) => (
+                  <p className="text-sm leading-relaxed tracking-tight mb-4 whitespace-pre-wrap font-normal" {...props} />
+                ),
+                strong: ({ node, ...props }) => (
+                  <strong className="font-black bg-foreground text-background px-2 py-0.5" {...props} />
+                ),
+                h1: ({ node, ...props }) => (
+                  <h1 className="text-xl font-black mb-4 mt-6 border-b-2 border-foreground/30 pb-2 uppercase" {...props} />
+                ),
+                ul: ({ node, ...props }) => (
+                  <ul className="list-disc list-inside mb-4 space-y-1 text-sm font-normal" {...props} />
+                )
+              }}
+            >
+              {currentResponse.question_text}
+            </ReactMarkdown>
+          </div>
 
           {currentResponse.question_type === 'mcq' ? (
             <div className="border-2 border-foreground p-6 bg-secondary/30 mb-8">
@@ -196,9 +218,23 @@ export default function ReviewPage({ params }: { params: Promise<{ submissionId:
               <p className="text-lg font-black">{currentResponse.selected_option_text || 'NO SELECTION'}</p>
             </div>
           ) : (
-            <div className="border-2 border-foreground p-6 bg-secondary/30 mb-8 min-h-[140px]">
-              <p className="text-[10px] font-black opacity-50 mb-4 tracking-widest">RECORDED_DATA (EXTENDED):</p>
-              <p className="font-mono text-sm whitespace-pre-wrap leading-relaxed">{currentResponse.short_answer_text || '(NULL_RESPONSE)'}</p>
+            <div className="border-2 border-foreground bg-background text-left font-mono normal-case mb-8">
+              <div className="bg-foreground text-background text-xs px-4 py-1 font-black tracking-widest uppercase">
+                // STUDENT_CPP_SUBMISSION
+              </div>
+              <CodeMirror
+                value={currentResponse.short_answer_text || '// NO CODE SUBMITTED'}
+                extensions={[cpp()]}
+                theme="dark"
+                editable={false}
+                basicSetup={{
+                  lineNumbers: true,
+                  foldGutter: false,
+                  dropCursor: false,
+                  highlightActiveLine: false,
+                }}
+                className="text-sm opacity-90"
+              />
             </div>
           )}
 

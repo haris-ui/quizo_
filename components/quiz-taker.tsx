@@ -29,7 +29,6 @@ interface QuizTakerProps {
 export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerProps) {
   const router = useRouter(); 
   
-  // 1. All Standard States
   const [questions, setQuestions] = useState<Question[]>([]);
   const [responses, setResponses] = useState<Record<string, any>>({});
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -37,17 +36,14 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // 2. Success/Ban/Fullscreen States
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isBanned, setIsBanned] = useState(false);
   const [bannedReason, setBannedReason] = useState<string | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
-  // 3. Timer States
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
   const [quizDuration, setQuizDuration] = useState<number | null>(null);
 
-  // 4. Refs
   const supabaseRef = useRef(createClient());
   const warningShownRef = useRef(false);
   const isSubmittingRef = useRef(false);
@@ -55,7 +51,6 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
   const responsesRef = useRef(responses);
   const questionsRef = useRef(questions);
 
-  // 5. Syncing Effects
   useEffect(() => {
     submissionRef.current = submission;
   }, [submission]);
@@ -65,7 +60,6 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
     questionsRef.current = questions;
   }, [responses, questions]);
 
-  // Anti-cheating detection
   useEffect(() => {
     const handleVisibilityChange = async () => {
       if (document.hidden && !isSubmittingRef.current) {
@@ -126,7 +120,6 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
     };
   }, []); 
 
-  // Request fullscreen explicitly
   const enterFullscreen = async () => {
     try {
       const elem = document.documentElement;
@@ -140,18 +133,24 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
     }
   };
 
-  // Load questions, duration, and submission
   useEffect(() => {
     const loadQuiz = async () => {
       const supabase = supabaseRef.current;
 
       try {
-        // Fetch dynamic quiz duration
+        // FIXED: Now fetching is_active alongside the duration
         const { data: quizData, error: quizError } = await supabase
           .from('quizzes')
-          .select('duration_minutes')
+          .select('duration_minutes, is_active')
           .eq('id', quizId)
           .single();
+
+        // FIXED: Immediately boot the student out if the admin set it to offline
+        if (quizData?.is_active === false) {
+          setError('THIS PROTOCOL IS CURRENTLY OFFLINE AND UNAVAILABLE.');
+          setLoading(false);
+          return;
+        }
 
         if (quizError) {
           console.warn('Could not fetch quiz duration, defaulting to 30 mins', quizError);
@@ -160,7 +159,6 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
           setQuizDuration(quizData?.duration_minutes || 30);
         }
 
-        // Check for existing submission
         const { data: existingSubmission, error: checkError } = await supabase
           .from('quiz_submissions')
           .select('*')
@@ -174,7 +172,6 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
           return;
         }
 
-        // Create new submission
         const { data: newSubmission, error: submitError } = await supabase
           .from('quiz_submissions')
           .insert([{
@@ -188,7 +185,6 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
         if (submitError) throw submitError;
         setSubmission(newSubmission);
 
-        // Fetch questions
         const { data: questionsData, error: questionsError } = await supabase
           .from('quiz_questions')
           .select(`
@@ -225,7 +221,6 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
     loadQuiz();
   }, [quizId, rollNumber]);
 
-  // Auto-save responses every 5 seconds
   useEffect(() => {
     const interval = setInterval(async () => {
       if (submission && Object.keys(responses).length > 0) {
@@ -305,7 +300,6 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
 
     let totalScore = 0;
     
-    // Using refs safely ensures we catch the latest state when timer auto-submits
     const currentResponses = responsesRef.current;
     const currentQuestions = questionsRef.current;
 
@@ -349,13 +343,11 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
     }, 3000);
   };
 
-  // Dynamic Auto-Submit Timer
   useEffect(() => {
     if (!submission || !quizDuration) return;
 
     const durationMs = quizDuration * 60 * 1000;
     
-    // Timezone safe parser
     const dbTime = submission.started_at;
     const safeStartTimeStr = (dbTime.endsWith('Z') || dbTime.includes('+')) ? dbTime : `${dbTime}Z`;
     
@@ -384,7 +376,6 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
     return () => clearInterval(timerInterval);
   }, [submission, quizDuration]);
 
-  // Helper to format the countdown timer
   const formatTime = (ms: number) => {
     if (ms <= 0) return "00:00";
     const totalSeconds = Math.floor(ms / 1000);
@@ -392,8 +383,6 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
     const seconds = (totalSeconds % 60).toString().padStart(2, '0');
     return `${minutes}:${seconds}`;
   };
-
-  // --- RENDER BLOCK --- //
 
   if (loading) return <div className="flex items-center justify-center h-screen font-mono uppercase tracking-widest bg-background text-foreground">Loading protocol...</div>;
   if (error) return <div className="flex items-center justify-center h-screen text-foreground font-black uppercase tracking-widest bg-background p-6 border-4 border-foreground">{error}</div>;
@@ -464,7 +453,6 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
       onContextMenu={(e) => e.preventDefault()} 
     >
       <div className="max-w-4xl mx-auto">
-        {/* Progress Header */}
         <div className="mb-12">
           <div className="flex justify-between items-end mb-4">
             <div>
@@ -488,14 +476,12 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
           </div>
         </div>
         
-        {/* Question Area */}
         <div className="border-4 border-foreground p-10 bg-card mb-8">
           <div className="flex justify-between items-start mb-8 border-b-2 border-foreground pb-4 uppercase">
             <span className="bg-foreground text-background px-4 py-1 font-black text-sm">ITEM {currentQuestionIndex + 1}</span>
             <span className="font-black text-sm">{currentQuestion.marks} MARKS</span>
           </div>
 
-          {/* FIXED: Markdown Renderer */}
           <div className="mb-10 text-foreground normal-case font-normal">
             <ReactMarkdown
               components={{
@@ -517,7 +503,6 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
             </ReactMarkdown>
           </div>
 
-          {/* RESTORED: MCQ and CodeMirror Inputs */}
           {currentQuestion.question_type === 'mcq' ? (
             <div className="space-y-4">
               {currentQuestion.options?.map(option => (
@@ -567,7 +552,6 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
           )}
         </div>
 
-        {/* Navigation Footer */}
         <div className="flex flex-col md:flex-row gap-4">
           <button
             onClick={() => setCurrentQuestionIndex(Math.max(0, currentQuestionIndex - 1))}
@@ -593,7 +577,6 @@ export default function QuizTaker({ quizId, rollNumber, onSubmit }: QuizTakerPro
           )}
         </div>
 
-        {/* Security Warning Sticky */}
         <div className="mt-12 text-center">
           <p className="text-[10px] tracking-[0.2em] font-black opacity-30">SECURITY PROTOCOL ACTIVE // CONTINUOUS PERSISTENCE ENABLED</p>
         </div>

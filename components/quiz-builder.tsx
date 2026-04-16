@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
-import ReactMarkdown from 'react-markdown';
 
 interface Question {
   id?: string;
@@ -29,6 +28,7 @@ export default function QuizBuilder({ quizId }: QuizBuilderProps) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [duration, setDuration] = useState(60);
+  const [isActive, setIsActive] = useState(true); // NEW: State for hiding/showing quiz
   const [questions, setQuestions] = useState<Question[]>([]);
   const [editingQuestionId, setEditingQuestionId] = useState<string | null>(null);
   const [loading, setLoading] = useState(quizId ? true : false);
@@ -62,6 +62,8 @@ export default function QuizBuilder({ quizId }: QuizBuilderProps) {
       setTitle(quiz.title);
       setDescription(quiz.description || '');
       setDuration(quiz.duration_minutes);
+      // NEW: Load the active status (defaults to true if null)
+      setIsActive(quiz.is_active !== false);
 
       // Load questions
       const { data: questionsData, error: questionsError } = await supabase
@@ -125,6 +127,29 @@ export default function QuizBuilder({ quizId }: QuizBuilderProps) {
     }
   };
 
+  // NEW: Function to permanently delete the entire quiz
+  const handleDeleteEntireQuiz = async () => {
+    if (!quizId) return;
+    
+    const isConfirmed = confirm('CRITICAL WARNING: This will permanently purge this protocol and all associated student submissions from the mainframe. This cannot be undone. Proceed?');
+    if (!isConfirmed) return;
+
+    setSaving(true);
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.from('quizzes').delete().eq('id', quizId);
+      
+      if (error) throw error;
+      
+      alert('PROTOCOL PURGED SUCCESSFULLY.');
+      router.push('/admin/dashboard');
+    } catch (err: any) {
+      console.error('Error deleting quiz:', err);
+      setError(err.message || 'Failed to delete quiz');
+      setSaving(false);
+    }
+  };
+
   const handleSaveQuiz = async () => {
     if (!title.trim()) {
       setError('Quiz title is required');
@@ -154,6 +179,7 @@ export default function QuizBuilder({ quizId }: QuizBuilderProps) {
             title,
             description,
             duration_minutes: duration,
+            is_active: isActive, // NEW: Save active status
           }])
           .select()
           .single();
@@ -164,7 +190,12 @@ export default function QuizBuilder({ quizId }: QuizBuilderProps) {
         // Update existing quiz
         const { error: updateError } = await supabase
           .from('quizzes')
-          .update({ title, description, duration_minutes: duration })
+          .update({ 
+            title, 
+            description, 
+            duration_minutes: duration,
+            is_active: isActive // NEW: Update active status
+          })
           .eq('id', quizId_);
 
         if (updateError) throw updateError;
@@ -257,6 +288,25 @@ export default function QuizBuilder({ quizId }: QuizBuilderProps) {
 
         {/* Quiz Details */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+          
+          {/* NEW: Visibility Toggle */}
+          <div className="md:col-span-2 flex items-center justify-between p-4 border-2 border-foreground bg-secondary/20">
+            <div>
+              <label className="block text-sm font-black tracking-widest mb-1">NETWORK STATUS</label>
+              <p className="text-xs opacity-60 normal-case">Control if students can see and access this assessment.</p>
+            </div>
+            <button
+              onClick={() => setIsActive(!isActive)}
+              className={`px-6 py-3 font-black text-sm uppercase tracking-widest border-2 transition-colors ${
+                isActive 
+                  ? 'border-green-500 bg-green-500/10 text-green-500 hover:bg-green-500 hover:text-background' 
+                  : 'border-yellow-500 bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500 hover:text-background'
+              }`}
+            >
+              {isActive ? '[ PUBLIC / LIVE ]' : '[ HIDDEN / OFFLINE ]'}
+            </button>
+          </div>
+
           <div className="md:col-span-2">
             <label className="block text-xs font-black mb-3 tracking-widest">PROTOCOL TITLE *</label>
             <input
@@ -323,10 +373,22 @@ export default function QuizBuilder({ quizId }: QuizBuilderProps) {
         <div className="flex flex-col md:flex-row gap-4 pt-8 border-t-4 border-foreground">
           <button
             onClick={() => router.push('/admin/dashboard')}
-            className="flex-1 px-8 py-5 border-2 border-foreground font-black uppercase tracking-widest hover:bg-foreground hover:text-background transition-colors"
+            className="px-8 py-5 border-2 border-foreground font-black uppercase tracking-widest hover:bg-foreground hover:text-background transition-colors"
           >
             ABORT MISSION
           </button>
+          
+          {/* NEW: Permanent Delete Button (Only shows if quiz already exists) */}
+          {quizId && (
+            <button
+              onClick={handleDeleteEntireQuiz}
+              disabled={saving}
+              className="px-8 py-5 border-2 border-red-600 text-red-600 font-black uppercase tracking-widest hover:bg-red-600 hover:text-white transition-colors"
+            >
+              PURGE PROTOCOL
+            </button>
+          )}
+
           <button
             onClick={handleSaveQuiz}
             disabled={saving}
@@ -361,13 +423,12 @@ function QuestionEditor({
           onClick={onDelete}
           className="px-4 py-1 border-2 border-foreground font-black text-[10px] uppercase tracking-widest hover:bg-foreground hover:text-background transition-colors"
         >
-          [ PURGE ]
+          [ PURGE ITEM ]
         </button>
       </div>
 
       <div className="space-y-6">
         <div>
-          {/* UPDATED: Added Markdown Support hints and removed uppercase lock */}
           <div className="flex justify-between items-end mb-3">
             <label className="block text-xs font-black tracking-widest text-foreground/50">ITEM TEXT *</label>
             <span className="text-[10px] text-foreground/40 font-mono font-black">SUPPORTS MARKDOWN: **BOLD** | # LARGE | - BULLETS</span>
